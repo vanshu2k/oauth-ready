@@ -124,19 +124,25 @@ export async function* runAgent(query: string, signal?: AbortSignal): AsyncGener
     };
     const stream = client.beta.messages.stream(params, { signal });
 
-    const blocks = new Map<number, { type: string; name?: string; json: string; text: string }>();
+    const blocks = new Map<number, { type: string; name?: string; json: string; seeded: boolean; text: string }>();
     let writtenChars = 0;
     let lastReported = 0;
 
     for await (const ev of stream as AsyncIterable<any>) {
       if (ev.type === "content_block_start") {
         const cb = ev.content_block;
-        blocks.set(ev.index, { type: cb.type, name: cb.name, json: "", text: "" });
+        // Server tool calls can arrive with their input already set on the start event.
+        const initial = cb.input && Object.keys(cb.input).length ? JSON.stringify(cb.input) : "";
+        blocks.set(ev.index, { type: cb.type, name: cb.name, json: initial, seeded: Boolean(initial), text: "" });
         if (cb.type === "tool_use" && cb.name === "submit_guide") yield { type: "status", text: "Writing the guide…" };
       } else if (ev.type === "content_block_delta") {
         const b = blocks.get(ev.index);
         if (!b) continue;
         if (ev.delta.type === "input_json_delta") {
+          if (b.seeded) {
+            b.json = "";
+            b.seeded = false;
+          }
           b.json += ev.delta.partial_json;
           if (b.type === "tool_use") {
             writtenChars += ev.delta.partial_json.length;
@@ -160,8 +166,9 @@ export async function* runAgent(query: string, signal?: AbortSignal): AsyncGener
           } catch {
             /* partial input; skip the label */
           }
-          if (b.name === "web_search" && input.query) yield { type: "search", query: String(input.query) };
-          if (b.name === "web_fetch" && input.url) yield { type: "fetch", url: String(input.url) };
+          // Match on the input shape too: with dynamic filtering the call can be wrapped under another tool name.
+          if (input.query) yield { type: "search", query: String(input.query) };
+          else if (input.url) yield { type: "fetch", url: String(input.url) };
         } else if ((b.type === "thinking" || b.type === "text") && b.text.trim()) {
           yield { type: "note", text: b.text.trim() };
         }

@@ -57,6 +57,7 @@ function ClockCard({ g, title, clock }: { g: Guide; title: string; clock: Clock 
 export default function GuideView({ guide: g, shareUrl }: { guide: Guide; shareUrl?: string | null }) {
   const allSteps = g.stages.flatMap((s) => s.steps);
   const byActor = (a: Actor) => allSteps.filter((s) => s.actor === a).length;
+  const assisted = allSteps.filter((s) => s.actor !== "agent" && s.agentHelp).length;
   const mix = evidenceMix(g);
   const total = g.claims.length || 1;
   const live = g.meta.generatedBy === "live_agent";
@@ -113,6 +114,11 @@ export default function GuideView({ guide: g, shareUrl }: { guide: Guide; shareU
                 </span>
               ))}
           </div>
+          {assisted > 0 && (
+            <p className="small muted" style={{ margin: "8px 0 0" }}>
+              The agent also prepares material for {assisted} of the steps a person does: prefilled values, drafted text, checklists.
+            </p>
+          )}
         </div>
       </div>
 
