@@ -1,0 +1,259 @@
+{
+  "schemaVersion": "1.0",
+  "app": {
+    "slug": "microsoft_word",
+    "name": "Microsoft Word (via Microsoft Graph)",
+    "website": "https://www.microsoft.com/microsoft-365/word",
+    "developerPortal": "https://entra.microsoft.com/#view/Microsoft_AAD_RegisteredApps/ApplicationsListBlade",
+    "category": "documents"
+  },
+  "verdict": {
+    "tier": "review",
+    "summary": "Registering takes minutes; reaching other companies is about trust. You need publisher verification via Microsoft's partner program, and because Composio's defaults cover all files a user can reach, many customer tenants will need an admin to approve.",
+    "whoMustAct": ["developer", "customer_admin", "provider", "agent"],
+    "customerAdminRequired": true,
+    "cost": {
+      "summary": "App registration is free. Publisher verification needs a Microsoft AI Cloud Partner Program account; we haven't confirmed whether the basic enrollment it needs costs anything.",
+      "claimIds": ["pv-requirements"]
+    },
+    "claimIds": ["multitenant-consent-block", "pv-requirements", "default-no-all-files", "files-sites-admin-consent"]
+  },
+  "clocks": {
+    "firstConnection": {
+      "definition": "You connect an account from your own Entra tenant through Composio and read a Word document.",
+      "effort": { "min": 20, "max": 45, "unit": "minutes" },
+      "wait": { "min": 0, "max": 0, "unit": "minutes" },
+      "summary": "Same-day if you have a Microsoft Entra work or school account to register the app in.",
+      "claimIds": ["first-connection-time"]
+    },
+    "production": {
+      "definition": "Users in other organisations can connect, either by consenting themselves or after their admin approves.",
+      "effort": { "min": 2, "max": 6, "unit": "hours" },
+      "wait": { "min": 1, "max": 14, "unit": "days" },
+      "summary": "Publisher verification is mostly paperwork, but it depends on a verified partner program account. After that, each customer whose tenant restricts consent needs an admin to approve: you can't control that wait.",
+      "claimIds": ["pv-requirements", "multitenant-consent-block", "files-sites-admin-consent", "pv-wait"]
+    }
+  },
+  "stages": [
+    {
+      "id": "build",
+      "name": "Get a first working connection",
+      "unlocks": "Users in your own tenant can connect.",
+      "steps": [
+        {
+          "id": "register",
+          "title": "Register a multitenant app in Microsoft Entra",
+          "actor": "developer",
+          "instructions": "In the Entra admin center go to App registrations, then New registration. Choose 'Accounts in any organizational directory' (multitenant). Add a Web redirect URI equal to Composio's. Use a work or school account, not a personal Microsoft account, or you won't be able to publisher-verify later.",
+          "agentHelp": "The agent gives you the redirect URI and the exact delegated permissions to add.",
+          "whyHuman": "Needs your Entra account.",
+          "links": ["https://entra.microsoft.com/"],
+          "estimate": { "min": 10, "max": 15, "unit": "minutes" },
+          "claimIds": ["pv-requirements", "composio-redirect"]
+        },
+        {
+          "id": "secret",
+          "title": "Create a client secret and note its expiry",
+          "actor": "developer",
+          "instructions": "Under Certificates & secrets, add a client secret (24 months at most) and put the expiry date in your calendar. Paste the client ID and secret into a Composio custom auth config.",
+          "whyHuman": "The secret is created in and shown only to your account.",
+          "estimate": { "min": 5, "max": 10, "unit": "minutes" },
+          "claimIds": ["secret-expiry"]
+        },
+        {
+          "id": "permissions",
+          "title": "Choose delegated Graph permissions",
+          "actor": "agent",
+          "instructions": "Composio's defaults are offline_access, User.Read, Files.ReadWrite.All and Sites.Read.All. If your agent only edits the signed-in user's own documents, consider Files.ReadWrite instead of the .All permissions to avoid admin-consent friction.",
+          "agentHelp": "The agent explains what each permission unlocks and which ones tend to trigger admin consent.",
+          "estimate": { "min": 5, "max": 10, "unit": "minutes" },
+          "claimIds": ["composio-scopes", "graph-delegated-flags", "files-sites-admin-consent"]
+        },
+        {
+          "id": "test-connect",
+          "title": "Connect and make a test call",
+          "actor": "developer",
+          "instructions": "Connect through a Composio Connect Link with an account from your tenant and read a document.",
+          "estimate": { "min": 5, "max": 10, "unit": "minutes" },
+          "claimIds": []
+        }
+      ]
+    },
+    {
+      "id": "verify",
+      "name": "Become a verified publisher",
+      "unlocks": "Users in other tenants can consent where their tenant allows it, and your app shows a verified badge.",
+      "steps": [
+        {
+          "id": "cpp",
+          "title": "Enroll in the Microsoft AI Cloud Partner Program",
+          "actor": "provider",
+          "instructions": "Create a Partner Center account for your company and complete Microsoft's business verification. Associate the Entra tenant that owns the app with that partner account.",
+          "whyHuman": "A legal business identity, verified by Microsoft.",
+          "links": ["https://learn.microsoft.com/en-us/partner-center/enroll/partner-center-enroll-overview"],
+          "claimIds": ["pv-requirements", "pv-wait"]
+        },
+        {
+          "id": "publisher-domain",
+          "title": "Set a verified publisher domain and complete publisher verification",
+          "actor": "developer",
+          "instructions": "Set the app's publisher domain, then in the app's Branding & properties enter your Partner ID and verify. The person doing this must sign in with multifactor authentication.",
+          "whyHuman": "Needs MFA sign-in and your partner account.",
+          "links": ["https://learn.microsoft.com/en-us/entra/identity-platform/publisher-verification-overview"],
+          "claimIds": ["pv-requirements"]
+        }
+      ]
+    },
+    {
+      "id": "customers",
+      "name": "Onboard each customer tenant",
+      "unlocks": "That customer's users can connect.",
+      "steps": [
+        {
+          "id": "admin-consent",
+          "title": "Ask the customer's admin to grant consent if users see 'Need admin approval'",
+          "actor": "customer_admin",
+          "instructions": "The customer's Entra admin grants tenant-wide consent for your app (Enterprise applications in the admin center, or the admin consent link you send them).",
+          "agentHelp": "The agent drafts the email to the customer's IT team: what the app accesses, why, and the exact permissions.",
+          "whyHuman": "Only the customer's admin can grant this.",
+          "claimIds": ["files-sites-admin-consent", "default-no-all-files"]
+        }
+      ]
+    }
+  ],
+  "requirements": [
+    { "id": "req-work-account", "kind": "account", "description": "A Microsoft Entra work or school account (personal Microsoft accounts can't be publisher-verified).", "neededFor": "first_connection", "claimIds": ["pv-requirements"] },
+    { "id": "req-cpp", "kind": "partner_membership", "description": "A Microsoft AI Cloud Partner Program account linked to the app's tenant.", "neededFor": "production", "claimIds": ["pv-requirements"] },
+    { "id": "req-domain", "kind": "verified_domain", "description": "A publisher domain set on the app.", "neededFor": "production", "claimIds": ["pv-requirements"] },
+    { "id": "req-customer-admin", "kind": "customer_tenant", "description": "Admin consent in customer tenants that restrict user consent.", "neededFor": "production", "claimIds": ["files-sites-admin-consent", "default-no-all-files"] }
+  ],
+  "limits": [
+    { "id": "lim-secret", "what": "Client secret lifetime", "value": "24 months maximum", "appliesWhen": "Always", "claimIds": ["secret-expiry"] }
+  ],
+  "gotchas": [
+    {
+      "id": "g-need-admin",
+      "symptom": "A customer's user sees 'Need admin approval' instead of a consent screen.",
+      "cause": "Their tenant doesn't let users consent to this app or these permissions: often the .All file and site permissions, or apps from unverified publishers.",
+      "fix": "Get publisher-verified, prefer narrower permissions, and send the customer's admin a consent request.",
+      "claimIds": ["files-sites-admin-consent", "multitenant-consent-block", "default-no-all-files"]
+    },
+    {
+      "id": "g-secret-expired",
+      "symptom": "Every connection breaks on the same day, about two years after setup.",
+      "cause": "The client secret expired (24 months at most).",
+      "fix": "Add a new secret before expiry and update the Composio auth config.",
+      "claimIds": ["secret-expiry"]
+    },
+    {
+      "id": "g-personal-account",
+      "symptom": "Publisher verification is unavailable for your app.",
+      "cause": "The app was registered with a personal Microsoft account.",
+      "fix": "Register the app in an Entra tenant using a work or school account.",
+      "claimIds": ["pv-requirements"]
+    }
+  ],
+  "composioSetup": {
+    "toolkitSlug": "microsoft_word",
+    "managedOAuthAvailable": false,
+    "authSchemes": ["OAUTH2"],
+    "redirectUri": "https://backend.composio.dev/api/v1/auth-apps/add",
+    "defaultScopes": ["offline_access", "User.Read", "Files.ReadWrite.All", "Sites.Read.All"],
+    "scopeNotes": [
+      { "scope": "offline_access, User.Read", "sensitivity": "basic", "note": "Users can consent to these themselves." },
+      { "scope": "Files.ReadWrite.All", "sensitivity": "admin_consent", "note": "Graph doesn't require admin consent for it by default, but tenant policies increasingly do for third-party apps reading all files." },
+      { "scope": "Sites.Read.All", "sensitivity": "admin_consent", "note": "Same story as Files.ReadWrite.All: SharePoint-wide read access." }
+    ],
+    "claimIds": ["composio-redirect", "composio-scopes", "graph-delegated-flags", "files-sites-admin-consent"]
+  },
+  "claims": [
+    {
+      "id": "multitenant-consent-block",
+      "text": "When risk-based step-up consent is enabled, users can't consent to most newly registered multitenant apps that aren't publisher-verified (for permissions beyond basic sign-in and profile).",
+      "evidence": { "level": "official", "sources": [{ "url": "https://learn.microsoft.com/en-us/entra/identity-platform/publisher-verification-overview", "title": "Publisher verification overview", "publisher": "provider", "quote": "Beginning November 2020, if risk-based step-up consent is enabled, users can't consent to most newly registered multitenant apps that aren't publisher verified.", "retrievedAt": "2026-11-01" }] },
+      "checkedAt": "2026-11-01"
+    },
+    {
+      "id": "pv-requirements",
+      "text": "Publisher verification needs: an app registered with an Entra work or school account, the tenant associated with a Cloud Partner Program account, a publisher domain set on the app, MFA sign-in by the person verifying, and acceptance of the platform terms.",
+      "evidence": { "level": "official", "sources": [{ "url": "https://learn.microsoft.com/en-us/entra/identity-platform/publisher-verification-overview", "publisher": "provider", "quote": "The app that's to be publisher verified must be registered by using a Microsoft Entra work or school account. Apps that are registered by using a Microsoft account can't be publisher verified.", "retrievedAt": "2026-11-01" }] },
+      "checkedAt": "2026-11-01"
+    },
+    {
+      "id": "default-no-all-files",
+      "text": "By default, users can consent to permissions that don't require admin consent, but not to giving an app unfettered read/write access to all files in the organization; Microsoft recommends allowing user consent only for verified publishers.",
+      "evidence": { "level": "official", "sources": [{ "url": "https://learn.microsoft.com/en-us/entra/identity/enterprise-apps/configure-user-consent", "publisher": "provider", "quote": "by default, a user can consent to allow an app to access their mailbox but can't consent to allow an app unfettered access to read and write to all files in your organization.", "retrievedAt": "2026-11-01" }] },
+      "checkedAt": "2026-11-01"
+    },
+    {
+      "id": "graph-delegated-flags",
+      "text": "In the Graph permissions reference, delegated Files.ReadWrite.All, Sites.Read.All, User.Read and offline_access are all marked as not requiring admin consent.",
+      "evidence": { "level": "official", "sources": [{ "url": "https://learn.microsoft.com/en-us/graph/permissions-reference", "title": "Microsoft Graph permissions reference (source: microsoft-graph-docs-contrib)", "publisher": "provider", "quote": "### Files.ReadWrite.All ... | AdminConsentRequired | Yes | No |", "retrievedAt": "2026-11-01" }] },
+      "checkedAt": "2026-11-01"
+    },
+    {
+      "id": "files-sites-admin-consent",
+      "text": "Since July–August 2025, tenants on Microsoft's managed default consent settings require admin consent for third-party apps that access files and sites.",
+      "evidence": {
+        "level": "third_party",
+        "sources": [
+          { "url": "https://ourcloudnetwork.com/require-admin-consent-for-third-party-apps-accessing-files-and-sites/", "publisher": "third_party", "quote": "requiring admins to explicitly grant consent before external applications can access your organisations data in SharePoint and OneDrive", "retrievedAt": "2026-11-01" },
+          { "url": "https://learn.microsoft.com/en-us/answers/questions/5526830/sudden-change-to-microsoft-user-consent-settings-b", "publisher": "community", "quote": "This change was announced by Microsoft back in June.", "retrievedAt": "2026-11-01" }
+        ],
+        "conflicts": [
+          { "otherValue": "Graph reference: delegated Files.ReadWrite.All and Sites.Read.All don't require admin consent.", "sourceUrl": "https://learn.microsoft.com/en-us/graph/permissions-reference", "resolution": "Both can be true. The Graph flag is the permission's default; tenant consent policy can be stricter. Treat admin consent as likely in customer tenants until tested." }
+        ]
+      },
+      "checkedAt": "2026-11-01"
+    },
+    {
+      "id": "secret-expiry",
+      "text": "Client secrets can't last longer than 24 months.",
+      "evidence": { "level": "official", "sources": [{ "url": "https://learn.microsoft.com/en-us/entra/identity-platform/how-to-add-credentials", "publisher": "provider", "quote": "Client secret lifetime is limited to two years (24 months) or less. You can't specify a custom lifetime longer than 24 months.", "retrievedAt": "2026-11-01" }] },
+      "checkedAt": "2026-11-01"
+    },
+    {
+      "id": "pv-wait",
+      "text": "Partner program enrollment and business verification can take from a day to a couple of weeks.",
+      "evidence": { "level": "inferred", "sources": [], "testNote": "No official SLA found this pass. Range is our estimate." },
+      "checkedAt": "2026-11-01"
+    },
+    {
+      "id": "composio-redirect",
+      "text": "Composio's default redirect URI for Microsoft Word is https://backend.composio.dev/api/v1/auth-apps/add.",
+      "evidence": { "level": "official", "sources": [{ "url": "https://docs.composio.dev/data/toolkits.json", "publisher": "composio", "retrievedAt": "2026-11-01" }] },
+      "checkedAt": "2026-11-01"
+    },
+    {
+      "id": "composio-scopes",
+      "text": "Composio's default scopes for Microsoft Word are offline_access, User.Read, Files.ReadWrite.All and Sites.Read.All.",
+      "evidence": { "level": "official", "sources": [{ "url": "https://docs.composio.dev/data/toolkits.json", "publisher": "composio", "retrievedAt": "2026-11-01" }] },
+      "checkedAt": "2026-11-01"
+    },
+    {
+      "id": "first-connection-time",
+      "text": "A developer with an Entra work account can reach a first working connection in 20 to 45 minutes.",
+      "evidence": { "level": "inferred", "sources": [], "testNote": "Not tested yet." },
+      "checkedAt": "2026-11-01"
+    }
+  ],
+  "openQuestions": [
+    {
+      "question": "Does Composio's Word toolkit work with Files.ReadWrite (the user's own files) instead of Files.ReadWrite.All and Sites.Read.All?",
+      "whyItMatters": "Narrower permissions are far more likely to be user-consentable, which removes the customer-admin step for many tenants.",
+      "howToResolve": "Connect with the narrower set and run each Word tool against a document in the user's OneDrive."
+    },
+    {
+      "question": "Does publisher verification cost anything, and how long does partner business verification take?",
+      "whyItMatters": "It sets the production clock and cost.",
+      "howToResolve": "Read the Partner Center enrollment docs; ask someone who has done it recently."
+    },
+    {
+      "question": "What exactly did Microsoft's 2025 consent change cover (permissions, tenants affected)?",
+      "whyItMatters": "Our only sources are a blog and a forum thread. A primary Microsoft announcement would upgrade the claim.",
+      "howToResolve": "Find the Microsoft 365 Message Center post or an Entra docs change note."
+    }
+  ],
+  "corrections": [],
+  "meta": { "generatedBy": "curated", "generatedAt": "2026-11-01T00:00:00Z", "humanReviewed": false }
+}

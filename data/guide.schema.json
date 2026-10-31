@@ -1,0 +1,314 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://oauth-readiness.local/schema/guide.schema.json",
+  "title": "OAuth app setup guide",
+  "description": "One guide per provider app. Every factual statement lives in `claims` with its evidence; the rest of the guide points at claim ids.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["schemaVersion", "app", "verdict", "clocks", "stages", "requirements", "limits", "gotchas", "composioSetup", "claims", "openQuestions", "corrections", "meta"],
+  "properties": {
+    "schemaVersion": { "const": "1.0" },
+
+    "app": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["slug", "name", "website", "developerPortal"],
+      "properties": {
+        "slug": { "type": "string", "pattern": "^[a-z0-9_-]+$" },
+        "name": { "type": "string" },
+        "website": { "type": "string", "format": "uri" },
+        "developerPortal": { "type": "string", "format": "uri" },
+        "category": { "type": "string" }
+      }
+    },
+
+    "verdict": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["tier", "summary", "whoMustAct", "customerAdminRequired", "cost", "claimIds"],
+      "properties": {
+        "tier": {
+          "description": "instant = register and serve any number of users with no review or fee. limited = self-serve start, but production hits a user/connection cap, a paid tier, or a light review. review = production needs a provider review or third-party assessment measured in weeks. gated = you cannot start without something you don't control (partner invitation, paid membership, a customer's tenant).",
+          "enum": ["instant", "limited", "review", "gated"]
+        },
+        "summary": { "type": "string", "maxLength": 280 },
+        "whoMustAct": {
+          "type": "array",
+          "minItems": 1,
+          "uniqueItems": true,
+          "items": { "$ref": "#/$defs/actor" }
+        },
+        "customerAdminRequired": {
+          "description": "True when each end customer's admin must do something (register the app in their tenant, grant admin consent) before their users can connect.",
+          "type": "boolean"
+        },
+        "cost": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["summary", "claimIds"],
+          "properties": {
+            "summary": { "type": "string" },
+            "claimIds": { "$ref": "#/$defs/claimIds" }
+          }
+        },
+        "claimIds": { "$ref": "#/$defs/claimIds" }
+      }
+    },
+
+    "clocks": {
+      "description": "Two clocks. firstConnection = the developer connects their own account in dev/test mode. production = any intended customer can connect without the developer stepping in.",
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["firstConnection", "production"],
+      "properties": {
+        "firstConnection": { "$ref": "#/$defs/clock" },
+        "production": { "$ref": "#/$defs/clock" }
+      }
+    },
+
+    "stages": {
+      "description": "Ordered stages. Each stage ends at a gate that unlocks the next (e.g. 'more than 5 connections').",
+      "type": "array",
+      "minItems": 1,
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["id", "name", "unlocks", "steps"],
+        "properties": {
+          "id": { "$ref": "#/$defs/id" },
+          "name": { "type": "string" },
+          "unlocks": { "type": "string", "description": "What finishing this stage lets you do." },
+          "steps": {
+            "type": "array",
+            "minItems": 1,
+            "items": { "$ref": "#/$defs/step" }
+          }
+        }
+      }
+    },
+
+    "requirements": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["id", "kind", "description", "neededFor", "claimIds"],
+        "properties": {
+          "id": { "$ref": "#/$defs/id" },
+          "kind": {
+            "enum": ["account", "legal_entity", "verified_domain", "privacy_policy", "terms_of_service", "payment_method", "partner_membership", "security_assessment", "app_review", "demo_video", "minimum_customers", "customer_tenant", "https_redirect", "other"]
+          },
+          "description": { "type": "string" },
+          "neededFor": { "enum": ["first_connection", "production", "scale"] },
+          "claimIds": { "$ref": "#/$defs/claimIds" }
+        }
+      }
+    },
+
+    "limits": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["id", "what", "value", "appliesWhen", "claimIds"],
+        "properties": {
+          "id": { "$ref": "#/$defs/id" },
+          "what": { "type": "string" },
+          "value": { "type": "string" },
+          "appliesWhen": { "type": "string" },
+          "claimIds": { "$ref": "#/$defs/claimIds" }
+        }
+      }
+    },
+
+    "gotchas": {
+      "description": "Blockers phrased the way a developer meets them: what you see, why, what to do.",
+      "type": "array",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["id", "symptom", "cause", "fix", "claimIds"],
+        "properties": {
+          "id": { "$ref": "#/$defs/id" },
+          "symptom": { "type": "string" },
+          "cause": { "type": "string" },
+          "fix": { "type": "string" },
+          "claimIds": { "$ref": "#/$defs/claimIds" }
+        }
+      }
+    },
+
+    "composioSetup": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["toolkitSlug", "managedOAuthAvailable", "authSchemes", "redirectUri", "defaultScopes", "scopeNotes", "claimIds"],
+      "properties": {
+        "toolkitSlug": { "type": "string" },
+        "managedOAuthAvailable": { "type": "boolean" },
+        "authSchemes": { "type": "array", "items": { "type": "string" } },
+        "redirectUri": { "type": "string" },
+        "defaultScopes": { "type": "array", "items": { "type": "string" } },
+        "scopeNotes": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": ["scope", "sensitivity", "note"],
+            "properties": {
+              "scope": { "type": "string" },
+              "sensitivity": { "enum": ["basic", "sensitive", "restricted", "admin_consent", "unknown"] },
+              "note": { "type": "string" }
+            }
+          }
+        },
+        "claimIds": { "$ref": "#/$defs/claimIds" }
+      }
+    },
+
+    "claims": {
+      "type": "array",
+      "minItems": 1,
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["id", "text", "evidence", "checkedAt"],
+        "properties": {
+          "id": { "$ref": "#/$defs/id" },
+          "text": { "type": "string" },
+          "evidence": { "$ref": "#/$defs/evidence" },
+          "checkedAt": { "type": "string", "format": "date" }
+        }
+      }
+    },
+
+    "openQuestions": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["question", "whyItMatters", "howToResolve"],
+        "properties": {
+          "question": { "type": "string" },
+          "whyItMatters": { "type": "string" },
+          "howToResolve": { "type": "string" }
+        }
+      }
+    },
+
+    "corrections": {
+      "description": "What we believed, what is true, and why it changed. Feeds the verification log.",
+      "type": "array",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["date", "before", "after", "why", "sourceUrl"],
+        "properties": {
+          "date": { "type": "string", "format": "date" },
+          "before": { "type": "string" },
+          "after": { "type": "string" },
+          "why": { "type": "string" },
+          "sourceUrl": { "type": "string", "format": "uri" }
+        }
+      }
+    },
+
+    "meta": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["generatedBy", "generatedAt", "humanReviewed"],
+      "properties": {
+        "generatedBy": { "enum": ["curated", "live_agent"] },
+        "generatedAt": { "type": "string", "format": "date-time" },
+        "model": { "type": "string" },
+        "humanReviewed": { "type": "boolean" }
+      }
+    }
+  },
+
+  "$defs": {
+    "id": { "type": "string", "pattern": "^[a-z0-9_-]+$" },
+    "claimIds": { "type": "array", "items": { "$ref": "#/$defs/id" } },
+    "actor": {
+      "description": "agent = this tool can do or prepare it. developer = you. customer_admin = an admin at your customer. provider = the provider's reviewers or partner team.",
+      "enum": ["agent", "developer", "customer_admin", "provider"]
+    },
+    "duration": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["min", "max", "unit"],
+      "properties": {
+        "min": { "type": "number", "minimum": 0 },
+        "max": { "type": "number", "minimum": 0 },
+        "unit": { "enum": ["minutes", "hours", "days", "weeks"] }
+      }
+    },
+    "clock": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["definition", "effort", "wait", "summary", "claimIds"],
+      "properties": {
+        "definition": { "type": "string", "description": "What 'done' means for this clock in this app." },
+        "effort": { "$ref": "#/$defs/duration", "description": "Hands-on work." },
+        "wait": { "$ref": "#/$defs/duration", "description": "Calendar time spent waiting on someone else." },
+        "summary": { "type": "string" },
+        "claimIds": { "$ref": "#/$defs/claimIds" }
+      }
+    },
+    "step": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["id", "title", "actor", "instructions", "claimIds"],
+      "properties": {
+        "id": { "$ref": "#/$defs/id" },
+        "title": { "type": "string" },
+        "actor": { "$ref": "#/$defs/actor" },
+        "instructions": { "type": "string" },
+        "agentHelp": { "type": "string", "description": "What the agent prepares when a human has to do the step (prefilled values, drafted text)." },
+        "whyHuman": { "type": "string", "description": "Why the agent can't do it: credentials, accepting terms, payment, identity checks, legal sign-off." },
+        "links": { "type": "array", "items": { "type": "string", "format": "uri" } },
+        "estimate": { "$ref": "#/$defs/duration" },
+        "claimIds": { "$ref": "#/$defs/claimIds" }
+      }
+    },
+    "evidence": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["level", "sources"],
+      "properties": {
+        "level": {
+          "description": "tested = we did it and observed the result. official = stated by the provider (or Composio) in its own docs, quoted. third_party = blogs, forums, aggregators. inferred = reasoned from other claims; never shown as fact. unknown = we looked and could not find out.",
+          "enum": ["tested", "official", "third_party", "inferred", "unknown"]
+        },
+        "sources": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": ["url", "publisher", "retrievedAt"],
+            "properties": {
+              "url": { "type": "string", "format": "uri" },
+              "title": { "type": "string" },
+              "publisher": { "enum": ["provider", "composio", "third_party", "community"] },
+              "quote": { "type": "string", "maxLength": 400 },
+              "retrievedAt": { "type": "string", "format": "date" }
+            }
+          }
+        },
+        "testNote": { "type": "string", "description": "For tested claims: what we did, when, and what we saw." },
+        "conflicts": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": ["otherValue", "sourceUrl", "resolution"],
+            "properties": {
+              "otherValue": { "type": "string" },
+              "sourceUrl": { "type": "string", "format": "uri" },
+              "resolution": { "type": "string" }
+            }
+          }
+        }
+      }
+    }
+  }
+}
