@@ -64,7 +64,7 @@ function derefSchema(schema: Record<string, unknown>): Record<string, unknown> {
 }
 
 function composioFacts(t: CatalogToolkit | null): string {
-  if (!t) return "This app is not in Composio's OAuth toolkit catalog. Set composioSetup.toolkitSlug to the app's slug, managedOAuthAvailable to false, authSchemes to [\"OAUTH2\"] and defaultScopes to the scopes you'd recommend.";
+  if (!t) return "This app is not in Composio's OAuth toolkit catalog, so there may be no Composio toolkit for it yet; say so in scopeNotes or openQuestions. Set composioSetup.toolkitSlug to a likely slug, managedOAuthAvailable to false, authSchemes to the auth methods the provider actually offers (for example [\"OAUTH2\"], or [\"API_KEY\"] if there is no OAuth), and defaultScopes to the scopes you'd recommend (empty if none).";
   return [
     `Composio toolkit: ${t.name} (slug "${t.slug}", category ${t.category || "n/a"}).`,
     `Composio-managed OAuth app available: ${t.managed ? "yes - the developer only needs their own app for custom branding, custom scopes or a separate rate-limit quota" : "no - the developer must bring their own"}.`,
