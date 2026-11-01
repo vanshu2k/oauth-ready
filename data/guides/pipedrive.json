@@ -10,28 +10,62 @@
   "verdict": {
     "tier": "instant",
     "summary": "One of the easy ones. Register a private app from a free developer sandbox and switch it to live, and any Pipedrive company can install it from your unlisted link. No review and no fee. Review only applies if you want a public Marketplace listing.",
-    "whoMustAct": ["developer", "agent"],
+    "whoMustAct": [
+      "developer",
+      "agent"
+    ],
     "customerAdminRequired": false,
     "cost": {
       "summary": "No fee is stated for private apps or the developer sandbox.",
-      "claimIds": ["no-fee-stated"]
+      "claimIds": [
+        "no-fee-stated"
+      ]
     },
-    "claimIds": ["sandbox-required", "private-app-live", "marketplace-review"]
+    "claimIds": [
+      "sandbox-required",
+      "private-app-live",
+      "marketplace-review",
+      "draft-own-company"
+    ]
   },
   "clocks": {
     "firstConnection": {
       "definition": "You install your app in your own Pipedrive sandbox through Composio and make an API call.",
-      "effort": { "min": 20, "max": 45, "unit": "minutes" },
-      "wait": { "min": 0, "max": 0, "unit": "minutes" },
-      "summary": "Same-day, with no approval step.",
-      "claimIds": ["sandbox-required", "one-callback", "first-connection-time"]
+      "effort": {
+        "min": 10,
+        "max": 30,
+        "unit": "minutes"
+      },
+      "wait": {
+        "min": 0,
+        "max": 0,
+        "unit": "minutes"
+      },
+      "summary": "Same-day, with no approval step. Measured: about 10 minutes from creating the app to a working connection.",
+      "claimIds": [
+        "sandbox-required",
+        "one-callback",
+        "first-connection-time",
+        "draft-own-company"
+      ]
     },
     "production": {
       "definition": "Users at other Pipedrive companies can install your app from a direct link (no Marketplace listing).",
-      "effort": { "min": 5, "max": 10, "unit": "minutes" },
-      "wait": { "min": 0, "max": 0, "unit": "minutes" },
+      "effort": {
+        "min": 5,
+        "max": 10,
+        "unit": "minutes"
+      },
+      "wait": {
+        "min": 0,
+        "max": 0,
+        "unit": "minutes"
+      },
       "summary": "Switch the private app from draft to live. A public Marketplace listing is optional, and Pipedrive says that review can take up to 21 business days.",
-      "claimIds": ["private-app-live", "marketplace-review"]
+      "claimIds": [
+        "private-app-live",
+        "marketplace-review"
+      ]
     }
   },
   "stages": [
@@ -46,9 +80,18 @@
           "actor": "developer",
           "instructions": "Sign up at developers.pipedrive.com. Developer Hub (where apps are created) only appears in a developer sandbox account.",
           "whyHuman": "Creating an account and accepting terms has to be done by you.",
-          "links": ["https://developers.pipedrive.com/"],
-          "estimate": { "min": 5, "max": 15, "unit": "minutes" },
-          "claimIds": ["sandbox-required"]
+          "links": [
+            "https://developers.pipedrive.com/"
+          ],
+          "estimate": {
+            "min": 1,
+            "max": 5,
+            "unit": "minutes"
+          },
+          "claimIds": [
+            "sandbox-required",
+            "no-fee-stated"
+          ]
         },
         {
           "id": "register-private-app",
@@ -57,9 +100,19 @@
           "instructions": "In Developer Hub, create a private app. Fill in App name, set OAuth Callback URL to Composio's redirect URI, and tick the access scopes your agent needs. Copy the client ID and client secret.",
           "agentHelp": "The agent gives you the exact callback URL and suggests scopes from the tools you plan to use.",
           "whyHuman": "The client secret lives in your Pipedrive account. The agent never handles it.",
-          "links": ["https://pipedrive.readme.io/docs/marketplace-registering-a-private-app"],
-          "estimate": { "min": 5, "max": 15, "unit": "minutes" },
-          "claimIds": ["one-callback", "scopes-on-app", "composio-redirect"]
+          "links": [
+            "https://pipedrive.readme.io/docs/marketplace-registering-a-private-app"
+          ],
+          "estimate": {
+            "min": 5,
+            "max": 15,
+            "unit": "minutes"
+          },
+          "claimIds": [
+            "one-callback",
+            "scopes-on-app",
+            "composio-redirect"
+          ]
         },
         {
           "id": "composio-auth-config",
@@ -67,16 +120,30 @@
           "actor": "developer",
           "instructions": "Create a Pipedrive auth config using your own OAuth app and paste the client ID and secret. Leave scopes empty: Pipedrive uses the scopes ticked on the app itself.",
           "whyHuman": "This pastes a secret into your Composio account.",
-          "estimate": { "min": 2, "max": 5, "unit": "minutes" },
-          "claimIds": ["composio-scopes-empty", "scopes-on-app"]
+          "estimate": {
+            "min": 2,
+            "max": 5,
+            "unit": "minutes"
+          },
+          "claimIds": [
+            "composio-scopes-empty",
+            "scopes-on-app",
+            "composio-byo-only"
+          ]
         },
         {
           "id": "test-install",
           "title": "Install it in your sandbox and make a test call",
           "actor": "developer",
-          "instructions": "Open a Composio Connect Link, approve the install in Pipedrive, then run a read tool (for example, list deals).",
-          "estimate": { "min": 5, "max": 10, "unit": "minutes" },
-          "claimIds": []
+          "instructions": "Open a Composio Connect Link (or Connect Account on the auth config), approve the install in Pipedrive, then run a read tool such as list deals. This works while the app is still Draft, because you are in the same Pipedrive company.",
+          "estimate": {
+            "min": 5,
+            "max": 10,
+            "unit": "minutes"
+          },
+          "claimIds": [
+            "draft-own-company"
+          ]
         }
       ]
     },
@@ -89,10 +156,18 @@
           "id": "set-live",
           "title": "Switch the private app from draft to live",
           "actor": "developer",
-          "instructions": "A draft private app can only be shared inside your own Pipedrive company. Set it live, then share its unlisted installation link with customers (or let Composio's Connect Link send them through it).",
-          "links": ["https://pipedrive.readme.io/docs/marketplace-registering-a-private-app"],
-          "estimate": { "min": 2, "max": 5, "unit": "minutes" },
-          "claimIds": ["private-app-live"]
+          "instructions": "A Draft private app works only for users in your own Pipedrive company (that is how your own test connection works). Click Change to live, then share its unlisted installation link with customers (or let Composio's Connect Link send them through it).",
+          "links": [
+            "https://pipedrive.readme.io/docs/marketplace-registering-a-private-app"
+          ],
+          "estimate": {
+            "min": 2,
+            "max": 5,
+            "unit": "minutes"
+          },
+          "claimIds": [
+            "private-app-live"
+          ]
         }
       ]
     },
@@ -108,19 +183,56 @@
           "instructions": "Fill in the public app form, give Pipedrive test account details, and confirm your email. Pipedrive's Marketplace team reviews it.",
           "agentHelp": "The agent can draft the listing text and pre-check it against Pipedrive's published checklist.",
           "whyHuman": "You submit the app, provide a test account, and answer reviewer questions.",
-          "links": ["https://pipedrive.readme.io/docs/marketplace-registering-the-app", "https://pipedrive.readme.io/docs/marketplace-app-approval-process"],
-          "claimIds": ["marketplace-review"]
+          "links": [
+            "https://pipedrive.readme.io/docs/marketplace-registering-the-app",
+            "https://pipedrive.readme.io/docs/marketplace-app-approval-process"
+          ],
+          "claimIds": [
+            "marketplace-review"
+          ]
         }
       ]
     }
   ],
   "requirements": [
-    { "id": "req-sandbox", "kind": "account", "description": "A Pipedrive developer sandbox account (Developer Hub only appears there).", "neededFor": "first_connection", "claimIds": ["sandbox-required"] },
-    { "id": "req-review", "kind": "app_review", "description": "Marketplace approval, only if you want a public listing.", "neededFor": "scale", "claimIds": ["marketplace-review"] }
+    {
+      "id": "req-sandbox",
+      "kind": "account",
+      "description": "A Pipedrive developer sandbox account (Developer Hub only appears there).",
+      "neededFor": "first_connection",
+      "claimIds": [
+        "sandbox-required"
+      ]
+    },
+    {
+      "id": "req-review",
+      "kind": "app_review",
+      "description": "Marketplace approval, only if you want a public listing.",
+      "neededFor": "scale",
+      "claimIds": [
+        "marketplace-review"
+      ]
+    }
   ],
   "limits": [
-    { "id": "lim-callback", "what": "Callback URLs per app", "value": "1", "appliesWhen": "Always", "claimIds": ["one-callback"] },
-    { "id": "lim-tokens", "what": "Token lifetimes", "value": "Access token 60 minutes; refresh token valid for 60 days, extended on each refresh", "appliesWhen": "Always", "claimIds": ["token-lifetimes"] }
+    {
+      "id": "lim-callback",
+      "what": "Callback URLs per app",
+      "value": "1",
+      "appliesWhen": "Always",
+      "claimIds": [
+        "one-callback"
+      ]
+    },
+    {
+      "id": "lim-tokens",
+      "what": "Token lifetimes",
+      "value": "Access token 60 minutes; refresh token valid for 60 days, extended on each refresh",
+      "appliesWhen": "Always",
+      "claimIds": [
+        "token-lifetimes"
+      ]
+    }
   ],
   "gotchas": [
     {
@@ -128,96 +240,242 @@
       "symptom": "Your own team can install the app, but a customer's company can't.",
       "cause": "Draft private apps are limited to users in the same Pipedrive company.",
       "fix": "Switch the app to live.",
-      "claimIds": ["private-app-live"]
+      "claimIds": [
+        "private-app-live"
+      ]
     },
     {
       "id": "g-one-callback",
       "symptom": "redirect_uri mismatch after you point the app at Composio (or back at your own server).",
       "cause": "Each Pipedrive app accepts exactly one callback URL.",
       "fix": "Keep one app per environment (for example 'Acme Agent (Composio)' and 'Acme Agent (local)').",
-      "claimIds": ["one-callback"]
+      "claimIds": [
+        "one-callback"
+      ]
     },
     {
       "id": "g-stale-refresh",
       "symptom": "A user who hasn't used the integration for about two months has to install it again.",
       "cause": "The refresh token expires if it isn't renewed within 60 days.",
       "fix": "Expected behaviour. Prompt the user to reconnect through a Connect Link.",
-      "claimIds": ["token-lifetimes"]
+      "claimIds": [
+        "token-lifetimes"
+      ]
     }
   ],
   "composioSetup": {
     "toolkitSlug": "pipedrive",
     "managedOAuthAvailable": false,
-    "authSchemes": ["OAUTH2", "API_KEY"],
+    "authSchemes": [
+      "OAUTH2",
+      "API_KEY"
+    ],
     "redirectUri": "https://backend.composio.dev/api/v1/auth-apps/add",
     "defaultScopes": [],
     "scopeNotes": [
-      { "scope": "(set on the Pipedrive app)", "sensitivity": "basic", "note": "Composio sends no scopes for Pipedrive. Access is whatever you tick under Access scopes in Developer Hub, so tick only what your agent's tools need." }
+      {
+        "scope": "(set on the Pipedrive app)",
+        "sensitivity": "basic",
+        "note": "Composio sends no scopes for Pipedrive. Access is whatever you tick under Access scopes in Developer Hub, so tick only what your agent's tools need."
+      }
     ],
-    "claimIds": ["composio-redirect", "composio-scopes-empty", "scopes-on-app"]
+    "claimIds": [
+      "composio-redirect",
+      "composio-scopes-empty",
+      "scopes-on-app",
+      "composio-byo-only"
+    ]
   },
   "claims": [
     {
       "id": "sandbox-required",
       "text": "You need a developer sandbox account to see Developer Hub and create apps.",
-      "evidence": { "level": "official", "sources": [{ "url": "https://pipedrive.readme.io/docs/marketplace-registering-a-private-app", "title": "Registering a private app", "publisher": "provider", "quote": "You must have a developer sandbox account for app creation to see Developer Hub.", "retrievedAt": "2026-11-01" }] },
+      "evidence": {
+        "level": "tested",
+        "sources": [
+          {
+            "url": "https://pipedrive.readme.io/docs/marketplace-registering-a-private-app",
+            "title": "Registering a private app",
+            "publisher": "provider",
+            "quote": "You must have a developer sandbox account for app creation to see Developer Hub.",
+            "retrievedAt": "2026-11-01"
+          }
+        ],
+        "testNote": "Hands-on, 2026-11-01: the sandbox account opens directly on /developer-hub with \"Create an app\" and Public/Private app tabs."
+      },
       "checkedAt": "2026-11-01"
     },
     {
       "id": "one-callback",
       "text": "Each app has exactly one callback URL (the OAuth redirect_uri).",
-      "evidence": { "level": "official", "sources": [{ "url": "https://pipedrive.readme.io/docs/marketplace-registering-a-private-app", "publisher": "provider", "quote": "Please keep in mind that we allow only one callback URL per app.", "retrievedAt": "2026-11-01" }] },
+      "evidence": {
+        "level": "tested",
+        "sources": [
+          {
+            "url": "https://pipedrive.readme.io/docs/marketplace-registering-a-private-app",
+            "publisher": "provider",
+            "quote": "Please keep in mind that we allow only one callback URL per app.",
+            "retrievedAt": "2026-11-01"
+          }
+        ],
+        "testNote": "Hands-on, 2026-11-01: the private app form has a single Callback URL field."
+      },
       "checkedAt": "2026-11-01"
     },
     {
       "id": "scopes-on-app",
       "text": "Access scopes are a required field on the app registration in Developer Hub.",
-      "evidence": { "level": "official", "sources": [{ "url": "https://pipedrive.readme.io/docs/marketplace-registering-a-private-app", "publisher": "provider", "quote": "Access scopes (required) | Using scopes, you can specify precisely what data access your application needs.", "retrievedAt": "2026-11-01" }] },
+      "evidence": {
+        "level": "tested",
+        "sources": [
+          {
+            "url": "https://pipedrive.readme.io/docs/marketplace-registering-a-private-app",
+            "publisher": "provider",
+            "quote": "Access scopes (required) | Using scopes, you can specify precisely what data access your application needs.",
+            "retrievedAt": "2026-11-01"
+          }
+        ],
+        "testNote": "Hands-on, 2026-11-01: scopes are set per area on the app (Deals, Contacts, Mail, ...), each Read only or Full access. We kept Deals and Contacts read only."
+      },
       "checkedAt": "2026-11-01"
     },
     {
       "id": "private-app-live",
       "text": "A draft private app can only be shared within the same Pipedrive company; a live private app can be shared with any company through a direct, unlisted installation link.",
-      "evidence": { "level": "official", "sources": [{ "url": "https://pipedrive.readme.io/docs/marketplace-registering-a-private-app", "publisher": "provider", "quote": "Your app is in a draft state. It can be shared with users in the same Pipedrive company. ... Your app is live and can be shared with any company in Pipedrive via its direct, unlisted installation link.", "retrievedAt": "2026-11-01" }] },
+      "evidence": {
+        "level": "official",
+        "sources": [
+          {
+            "url": "https://pipedrive.readme.io/docs/marketplace-registering-a-private-app",
+            "publisher": "provider",
+            "quote": "Your app is in a draft state. It can be shared with users in the same Pipedrive company. ... Your app is live and can be shared with any company in Pipedrive via its direct, unlisted installation link.",
+            "retrievedAt": "2026-11-01"
+          }
+        ]
+      },
       "checkedAt": "2026-11-01"
     },
     {
       "id": "marketplace-review",
       "text": "Public Marketplace apps must pass Pipedrive's approval process; Pipedrive currently warns reviews may take up to 21 business days.",
-      "evidence": { "level": "official", "sources": [
-        { "url": "https://pipedrive.readme.io/docs/marketplace-app-approval-process", "publisher": "provider", "quote": "Each new public app submitted to the Pipedrive Marketplace has to pass our approval process", "retrievedAt": "2026-11-01" },
-        { "url": "https://pipedrive.readme.io/docs/marketplace-updating-the-existing-app", "publisher": "provider", "quote": "Due to a surge in demand and ongoing vacations, public app reviews may take up to 21 business days.", "retrievedAt": "2026-11-01" }
-      ] },
+      "evidence": {
+        "level": "official",
+        "sources": [
+          {
+            "url": "https://pipedrive.readme.io/docs/marketplace-app-approval-process",
+            "publisher": "provider",
+            "quote": "Each new public app submitted to the Pipedrive Marketplace has to pass our approval process",
+            "retrievedAt": "2026-11-01"
+          },
+          {
+            "url": "https://pipedrive.readme.io/docs/marketplace-updating-the-existing-app",
+            "publisher": "provider",
+            "quote": "Due to a surge in demand and ongoing vacations, public app reviews may take up to 21 business days.",
+            "retrievedAt": "2026-11-01"
+          }
+        ]
+      },
       "checkedAt": "2026-11-01"
     },
     {
       "id": "token-lifetimes",
       "text": "Access tokens expire after 60 minutes; each refresh extends the refresh token's expiry window by 60 days, and an unrenewed refresh token forces a reinstall.",
-      "evidence": { "level": "official", "sources": [{ "url": "https://pipedrive.readme.io/docs/marketplace-oauth-authorization", "publisher": "provider", "quote": "access_token expires after 60 minutes. ... The same refresh token will be issued in the response with the expiry window extended by 60 days.", "retrievedAt": "2026-11-01" }] },
+      "evidence": {
+        "level": "official",
+        "sources": [
+          {
+            "url": "https://pipedrive.readme.io/docs/marketplace-oauth-authorization",
+            "publisher": "provider",
+            "quote": "access_token expires after 60 minutes. ... The same refresh token will be issued in the response with the expiry window extended by 60 days.",
+            "retrievedAt": "2026-11-01"
+          }
+        ]
+      },
       "checkedAt": "2026-11-01"
     },
     {
       "id": "composio-redirect",
       "text": "Composio's default redirect URI for Pipedrive is https://backend.composio.dev/api/v1/auth-apps/add.",
-      "evidence": { "level": "official", "sources": [{ "url": "https://docs.composio.dev/data/toolkits.json", "publisher": "composio", "retrievedAt": "2026-11-01" }] },
+      "evidence": {
+        "level": "tested",
+        "sources": [
+          {
+            "url": "https://docs.composio.dev/data/toolkits.json",
+            "publisher": "composio",
+            "retrievedAt": "2026-11-01"
+          }
+        ],
+        "testNote": "Hands-on, 2026-11-01: Composio's Pipedrive auth config form prefills this redirect URI, and the Pipedrive app accepted it."
+      },
       "checkedAt": "2026-11-01"
     },
     {
       "id": "composio-scopes-empty",
       "text": "Composio's default scope list for Pipedrive is empty.",
-      "evidence": { "level": "official", "sources": [{ "url": "https://docs.composio.dev/data/toolkits.json", "publisher": "composio", "retrievedAt": "2026-11-01" }] },
+      "evidence": {
+        "level": "tested",
+        "sources": [
+          {
+            "url": "https://docs.composio.dev/data/toolkits.json",
+            "publisher": "composio",
+            "retrievedAt": "2026-11-01"
+          }
+        ],
+        "testNote": "Hands-on, 2026-11-01: Composio's scopes field is optional; we left it empty and the connection used the scopes set on the Pipedrive app."
+      },
       "checkedAt": "2026-11-01"
     },
     {
       "id": "no-fee-stated",
-      "text": "No fee is mentioned for the developer sandbox or private apps.",
-      "evidence": { "level": "inferred", "sources": [], "testNote": "Absence of a fee in the pages read, not a statement by Pipedrive. Confirm during sign-up." },
+      "text": "The developer sandbox is free: sign-up took about 20 seconds with a personal Gmail address, asked for no card, sent no verification email, and showed no expiry wording.",
+      "evidence": {
+        "level": "tested",
+        "sources": [
+          {
+            "url": "https://developers.pipedrive.com/",
+            "title": "Pipedrive Developers Corner",
+            "publisher": "provider",
+            "retrievedAt": "2026-11-01"
+          }
+        ],
+        "testNote": "Hands-on, 2026-11-01: signed up via \"Sign up for a Sandbox account\" and landed straight on the sandbox Developer Hub (\"Welcome to your Developer Sandbox account!\"). No card, price, trial or expiry wording seen."
+      },
       "checkedAt": "2026-11-01"
     },
     {
       "id": "first-connection-time",
-      "text": "A developer can reach a first working connection in 20 to 45 minutes.",
-      "evidence": { "level": "inferred", "sources": [], "testNote": "Not tested yet. Estimated from the steps. To be replaced by a timed attempt." },
+      "text": "A first working connection took about 10 minutes from the private app screen to an Active Composio connection, plus a 20-second sandbox sign-up.",
+      "evidence": {
+        "level": "tested",
+        "sources": [],
+        "testNote": "Hands-on, 2026-11-01: app settings screenshot at 06:07, Active connected account in Composio at about 06:15. Composio account sign-up time not recorded."
+      },
+      "checkedAt": "2026-11-01"
+    },
+    {
+      "id": "draft-own-company",
+      "text": "While the private app is still Draft, a user in the same Pipedrive company can connect it through Composio and make API calls. Draft apps also show \"Install and test\" and \"Share app\" buttons.",
+      "evidence": {
+        "level": "tested",
+        "sources": [],
+        "testNote": "Hands-on, 2026-11-01: connected the Draft app from the sandbox company; Composio showed the connection Active and a \"List my Pipedrive deals\" request ran the deals API in 1.9s and returned no deals (correct for an empty sandbox)."
+      },
+      "checkedAt": "2026-11-01"
+    },
+    {
+      "id": "composio-byo-only",
+      "text": "Composio's Pipedrive auth config offers only your own OAuth2 app (client ID and secret required) or a static API key. There is no Composio-managed app for Pipedrive.",
+      "evidence": {
+        "level": "tested",
+        "sources": [
+          {
+            "url": "https://docs.composio.dev/data/toolkits.json",
+            "publisher": "composio",
+            "retrievedAt": "2026-11-01"
+          }
+        ],
+        "testNote": "Hands-on, 2026-11-01: seen in the platform.composio.dev Create Auth Config form for Pipedrive."
+      },
       "checkedAt": "2026-11-01"
     }
   ],
@@ -226,11 +484,6 @@
       "question": "Can any user at a customer company install a live private app, or does their Pipedrive admin have to?",
       "whyItMatters": "If an admin is needed, customerAdminRequired becomes true and the production clock depends on the customer.",
       "howToResolve": "Install the live app from a second, non-admin Pipedrive user."
-    },
-    {
-      "question": "Does the developer sandbox expire, and is it free?",
-      "whyItMatters": "An expiring sandbox would break the app registration it owns.",
-      "howToResolve": "Check the sign-up terms during the hands-on attempt."
     }
   ],
   "corrections": [
@@ -240,7 +493,18 @@
       "after": "Only once the app is switched from draft to live. Draft apps are limited to your own Pipedrive company.",
       "why": "Our step-1 shortlist missed the draft/live distinction on Pipedrive's private app page.",
       "sourceUrl": "https://pipedrive.readme.io/docs/marketplace-registering-a-private-app"
+    },
+    {
+      "date": "2026-11-01",
+      "before": "Estimated 20 to 45 minutes to a first working connection (inferred).",
+      "after": "Measured about 10 minutes from creating the app to a working connection, plus a 20-second sandbox sign-up.",
+      "why": "Hands-on setup attempt replaced the estimate.",
+      "sourceUrl": "https://developers.pipedrive.com/"
     }
   ],
-  "meta": { "generatedBy": "curated", "generatedAt": "2026-11-01T00:00:00Z", "humanReviewed": false }
+  "meta": {
+    "generatedBy": "curated",
+    "generatedAt": "2026-11-01T00:00:00Z",
+    "humanReviewed": false
+  }
 }

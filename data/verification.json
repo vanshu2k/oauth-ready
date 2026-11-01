@@ -3,7 +3,8 @@
   "method": [
     "scripts/check_quotes.py re-fetched every cited page and checked each quote appears word for word (after normalising whitespace, punctuation and HTML).",
     "Pages a plain fetch can't read (client-rendered docs, bot protection) were opened in a real browser, and the same check ran against the rendered text.",
-    "A sample of claims was read against the page by hand, to check the claim says what the quote supports, not just that the quote exists."
+    "A sample of claims was read against the page by hand, to check the claim says what the quote supports, not just that the quote exists.",
+    "Hands-on setup attempt (Pipedrive, 2026-11-01): a person ran the guide end to end. Sandbox sign-up, private app, Composio auth config, connection, and one real API call, timing each step."
   ],
   "totals": [
     {
@@ -24,6 +25,11 @@
     }
   ],
   "findings": [
+    {
+      "kind": "confirmed",
+      "subject": "Pipedrive (hands-on)",
+      "text": "Followed the guide end to end. Sandbox sign-up took about 20 seconds, free with a Gmail address. The private app form has one callback URL and starts as Draft. Composio offers only your own OAuth2 app or an API key, and prefills the matching redirect URI. The connection went Active about 10 minutes after the app was created, while the app was still Draft. A list-deals call worked (1.9s, no deals in an empty sandbox). The guide's 20 to 45 minute estimate was replaced by the measured time."
+    },
     {
       "kind": "our_error",
       "subject": "Google Forms",
@@ -68,6 +74,7 @@
   "lessons": [
     "Quotes from search snippets are not quotes. They get reflowed and can come from older versions of a page. Quote from the page itself.",
     "A plain HTTP fetch can't read most modern docs sites (Xero, Teamtailor and ServiceNow render in the browser; Zoho blocks bots). Verification needs a real browser.",
-    "The agent gets quotes right most of the time (24 of 25 on pages that still exist), but not always, so every live guide's quotes are now checked when it's generated."
+    "The agent gets quotes right most of the time (24 of 25 on pages that still exist), but not always, so every live guide's quotes are now checked when it's generated.",
+    "A hands-on attempt is cheap for self-serve providers (Pipedrive took 15 minutes) and turns every estimate on the page into a measurement. It is worth doing first for the apps developers ask about most."
   ]
 }

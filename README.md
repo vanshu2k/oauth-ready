@@ -65,6 +65,8 @@ Server-side refusal fallback (`fallbacks: "default"`) is enabled, so a false-pos
 - **Two agent-generated guides:** 24 of 29 word for word. One paraphrased quote, and 4 quotes cite a support article that has since disappeared.
 - **As a result,** every live-generated guide now gets an automatic quote check (`lib/quotecheck.ts`), shown as a badge on each source.
 
+**Hands-on test: Pipedrive (2026-11-01).** We followed the guide end to end: free sandbox (about 20 seconds), private app, Composio auth config, connection, and a real list-deals call. It took about 10 minutes from creating the app to a working connection, with the app still in Draft.
+
 See `/method` in the app and the notes in `docs/`:
 - `docs/01-demo-app-shortlist.md`: how the 5 apps were picked from Composio's catalog.
 - `docs/02-guide-design.md`: schema and design decisions, and what the first guide changed.
@@ -113,7 +115,7 @@ python scripts/validate_guides.py
 
 ## Limitations
 
-- **Nothing in the library is hands-on tested yet.** Those claims say "official" or "inferred", never "tested", until a real setup attempt is recorded (`docs/03-hands-on-checklist.md`).
+- **Only Pipedrive is hands-on tested so far.** Sandbox, private app, Composio auth config, connection and a live API call, with 9 claims now "tested" and every estimate replaced by a measurement. The other four guides' claims are "official" or "inferred" until a real attempt is recorded (`docs/03-hands-on-checklist.md`).
 - **Policies change.** Every claim carries its retrieval date. There's no automatic re-check yet; the obvious next step is a scheduled job that re-fetches each claim's source and flags quotes that no longer appear.
 - **The agent only sees public pages.** Anything behind a provider login comes from docs, not observation.
 - **Live guides are labelled "not yet reviewed by a person".** Generation takes about 2 minutes and is rate-limited per visitor.

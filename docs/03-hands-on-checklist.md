@@ -22,7 +22,7 @@ Each test turns specific `inferred` or `third_party` claims into `tested`. Order
 - [ ] Screenshots of each provider screen you pass through (crop out client secrets).
 - [ ] Never paste secrets into chat or into this repo. Report only what you saw.
 
-### Test 1: Pipedrive (~30 min)
+### Test 1: Pipedrive (~30 min). **Done 2026-11-01:** passed end to end, results in `docs/04-verification-log.md`
 Proves: `first-connection-time`, the draft/live behaviour, sandbox fee and expiry.
 - [ ] Sign up for a developer sandbox at developers.pipedrive.com. Note: free? any expiry or trial wording? → ______
 - [ ] Developer Hub → create a **private app**. Callback URL = `https://backend.composio.dev/api/v1/auth-apps/add`. Tick read-only deals/persons scopes.

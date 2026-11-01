@@ -55,7 +55,21 @@ Sample: every quote in the 5 library guides, plus two guides the live agent gene
 - **A plain HTTP fetch can't read most modern docs sites.** Serious verification needs a real browser. The automated check is a first pass, not the last word.
 - **The agent is reliable at quoting, but not perfect.** It got 24 of 25 quotes right on pages that still exist, so checking has to be automatic rather than trusted.
 
+## Hands-on test: Pipedrive (2026-11-01)
+
+A person followed the Pipedrive guide end to end with free accounts, timing each step:
+
+| Step | What we saw | Time |
+|---|---|---|
+| Sandbox sign-up | Free with a personal Gmail address. No card, no verification email, no expiry wording. Lands straight on Developer Hub. | ~20 s |
+| Private app | One Callback URL field; app type PRIVATE; starts as **DRAFT** with "Change to live", "Install and test" and "Share app". Scopes set per area, read-only or full. | a few min |
+| Composio auth config | Only "your own OAuth2 app" or "static API key"; no managed app. Client ID and secret required, scopes optional, redirect URI prefilled and matching. | a few min |
+| Connect + test call | Connection **Active** while the app was still Draft (same company). "List my Pipedrive deals" ran the deals API in 1.9 s and returned no deals, which is correct for an empty sandbox. | ~10 min from app to Active |
+
+Result: the Pipedrive guide went from 8 official and 2 inferred claims to **9 tested and 3 official, with no estimates left**. The "20–45 min" estimate became a measured ~10 minutes.
+
 ## Not verified yet
 
-- **No library claim is "tested" yet.** The hands-on setup attempts (`docs/03-hands-on-checklist.md`) are still to do.
+- **Hands-on attempts for the other four library apps.** Google Forms and Xero are free to try (`docs/03-hands-on-checklist.md`). Microsoft needs a work tenant, and ServiceNow needs a developer instance.
+- **Whether a live Pipedrive app installs for another company's non-admin user.** This needs a second Pipedrive company.
 - **Open questions per guide** are listed on `/method`. Examples: whether Composio's Google Forms tools work with only `drive.file`, and what Microsoft's 2025 consent change covers exactly.
