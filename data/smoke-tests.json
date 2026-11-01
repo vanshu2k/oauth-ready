@@ -1,0 +1,12 @@
+{
+  "description": "Daily connection checks. For each tested guide, run one read-only tool through Composio on an existing connected account. A pass proves the OAuth app, the auth config and the stored tokens still work. Only pass/fail and timing are recorded, never the data returned.",
+  "checks": [
+    {
+      "guide": "pipedrive",
+      "toolkit": "pipedrive",
+      "tool": "PIPEDRIVE_GET_CURRENT_USER_DATA",
+      "arguments": {},
+      "why": "Read-only, needs no arguments, and only uses the basic-info scope every Pipedrive app is granted."
+    }
+  ]
+}

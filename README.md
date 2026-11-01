@@ -8,7 +8,9 @@ Look up an app and get a guide you can follow and share: how hard it is to get y
 - **Live generation:** type any app name or website. An agent researches it in a few minutes, shows its work, and saves a guide with its own link. Two real runs:
   - [Zoho Recruit](https://oauth-ready-ochre.vercel.app/g/zoho_recruit-mvwvyl9p): self-serve, but you must enable multi-data-centre support.
   - [Teamtailor](https://oauth-ready-ochre.vercel.app/g/teamtailor-mvww8952): no third-party OAuth at all.
+- **How it works:** [/how-it-works](https://oauth-ready-ochre.vercel.app/how-it-works) explains the product, the agent pipeline, the evidence levels and what's automated, in plain terms with diagrams.
 - **How we verify:** [/method](https://oauth-ready-ochre.vercel.app/method) lists the verification run, every correction (ours and the agent's), every conflict between sources, and every question still open.
+- **Built for doing, not just reading:** a comparison table across guides, a step checklist with "your next step", Copy-as-Markdown, and link previews when a guide is shared in Slack or email.
 
 ## The problem, as I understood it
 
@@ -61,6 +63,20 @@ This tool is built for those 156. Apps that Composio already manages or that reg
 6. The finished guide is saved to Vercel Blob and gets a shareable `/g/<id>` link.
 
 Server-side refusal fallback (`fallbacks: "default"`) is enabled, so a false-positive safety decline is retried on a fallback model instead of failing the demo.
+
+## Keeping guides true, automatically
+
+**Daily connection check** (`scripts/smoke_test.py`, `.github/workflows/smoke-test.yml`): every day, GitHub Actions runs one read-only tool through Composio on a real connection for each hands-on-tested guide. For Pipedrive that's `PIPEDRIVE_GET_CURRENT_USER_DATA`. It records only pass/fail and latency, never the data returned, in `data/smoke-status.json`, and the guide shows "Connection works · date".
+- **What a pass proves:** the OAuth app, the Composio auth config and the stored tokens all still work.
+- **Setup:** add a `COMPOSIO_API_KEY` repository secret (Settings → Secrets and variables → Actions).
+
+**Do you need a sandbox per test? No.** Creating the provider account is a one-time human step per provider, because sign-ups involve terms, email or phone checks, CAPTCHAs and 2FA, and automating them is fragile and often against the provider's terms. After that one account exists, every re-check reuses the same connection automatically.
+
+**Where an agent can register the OAuth app itself:** some providers have an API for it, so an agent with the developer's admin token could skip the console entirely:
+- [Microsoft Graph `POST /applications`](https://learn.microsoft.com/en-us/graph/tutorial-applications-basics)
+- [Slack `apps.manifest.create`](https://docs.slack.dev/reference/methods/apps.manifest.create), which returns the client ID and secret.
+
+The live agent doesn't do this yet; it's the next automation worth building.
 
 ## What was verified
 
@@ -118,6 +134,8 @@ python scripts/validate_guides.py
 | `app/api/generate/route.ts` | Streams agent progress to the browser; quote-checks and saves the finished guide |
 | `lib/quotecheck.ts`, `scripts/check_quotes.py` | Re-fetch cited pages and check quotes word for word (live guides automatically; library on demand) |
 | `data/verification.json`, `docs/04-verification-log.md` | The verification run and hands-on test results |
+| `scripts/smoke_test.py`, `data/smoke-tests.json`, `.github/workflows/smoke-test.yml` | Daily connection check through Composio |
+| `app/how-it-works/page.tsx` | Plain-language explainer with the animated agent pipeline |
 
 ## Limitations
 

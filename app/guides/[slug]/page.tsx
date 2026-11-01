@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 import GuideView from "@/components/GuideView";
-import { curatedGuide, curatedGuides } from "@/lib/data";
+import { connectionCheck, curatedGuide, curatedGuides } from "@/lib/data";
 
 export function generateStaticParams() {
   return curatedGuides().map((g) => ({ slug: g.app.slug }));
@@ -15,5 +15,5 @@ export async function generateMetadata({ params }: { params: Promise<{ slug: str
 export default async function CuratedGuidePage({ params }: { params: Promise<{ slug: string }> }) {
   const g = curatedGuide((await params).slug);
   if (!g) notFound();
-  return <GuideView guide={g} />;
+  return <GuideView guide={g} check={connectionCheck(g.app.slug)} />;
 }

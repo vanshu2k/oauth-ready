@@ -4,6 +4,7 @@ import { ACTOR, EVIDENCE, TIER, formatDuration, host } from "@/lib/format";
 import { guideToMarkdown } from "@/lib/markdown";
 import type { Actor, Clock, Guide } from "@/lib/types";
 import CopyButton from "./CopyButton";
+import { StepCheck, StepProgress } from "./StepProgress";
 
 function Refs({ g, ids }: { g: Guide; ids: string[] }) {
   if (!ids.length) return null;
@@ -54,7 +55,14 @@ function ClockCard({ g, title, clock }: { g: Guide; title: string; clock: Clock 
   );
 }
 
-export default function GuideView({ guide: g, shareUrl }: { guide: Guide; shareUrl?: string | null }) {
+export interface CheckBadge {
+  status: "pass" | "fail" | "no_connection" | "error";
+  tool: string;
+  latencyMs?: number;
+  runAt: string;
+}
+
+export default function GuideView({ guide: g, shareUrl, check }: { guide: Guide; shareUrl?: string | null; check?: CheckBadge | null }) {
   const allSteps = g.stages.flatMap((s) => s.steps);
   const byActor = (a: Actor) => allSteps.filter((s) => s.actor === a).length;
   const assisted = allSteps.filter((s) => s.actor !== "agent" && s.agentHelp).length;
@@ -98,6 +106,15 @@ export default function GuideView({ guide: g, shareUrl }: { guide: Guide; shareU
                 Hands-on tested · {mix.tested} claims
               </a>
             )}
+            {check && (
+              <span
+                className={`pill ${check.status === "pass" ? "tested" : check.status === "fail" ? "gated" : "neutral"}`}
+                title={`Daily automated check: runs ${check.tool} through Composio on a real connection${check.latencyMs ? ` (${check.latencyMs} ms)` : ""}`}
+              >
+                {{ pass: "Connection works", fail: "Connection check failed", no_connection: "No test connection", error: "Check couldn't run" }[check.status]} ·{" "}
+                {check.runAt.slice(0, 10)}
+              </span>
+            )}
           </div>
           <p style={{ fontSize: 17, margin: "12px 0 8px" }}>{g.verdict.summary}</p>
           <p className="small muted" style={{ margin: 0 }}>
@@ -135,6 +152,7 @@ export default function GuideView({ guide: g, shareUrl }: { guide: Guide; shareU
 
       {/* Steps */}
       <h2>What to do, in order</h2>
+      <StepProgress slug={g.app.slug} steps={allSteps.map((s) => ({ id: s.id, title: s.title }))} />
       {g.stages.map((stage, si) => (
         <section key={stage.id} className="stage">
           <div className="stage-head">
@@ -145,11 +163,14 @@ export default function GuideView({ guide: g, shareUrl }: { guide: Guide; shareU
           </div>
           <ol className="steps">
             {stage.steps.map((s, i) => (
-              <li key={s.id} className={`card tight step ${s.actor}`}>
+              <li key={s.id} id={`step-${s.id}`} className={`card tight step ${s.actor}`}>
                 <div className="num">{i + 1}</div>
                 <div>
                   <div className="row" style={{ justifyContent: "space-between" }}>
-                    <strong>{s.title}</strong>
+                    <span className="row" style={{ gap: 8 }}>
+                      <StepCheck slug={g.app.slug} id={s.id} title={s.title} />
+                      <strong>{s.title}</strong>
+                    </span>
                     <span className="row">
                       {s.estimate && <span className="faint small">{formatDuration(s.estimate)}</span>}
                       <span className={`pill ${s.actor}`}>{ACTOR[s.actor]}</span>

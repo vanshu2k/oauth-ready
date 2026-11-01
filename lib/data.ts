@@ -43,6 +43,23 @@ export function verificationRun(): VerificationRun {
   return JSON.parse(fs.readFileSync(path.join(DATA, "verification.json"), "utf-8"));
 }
 
+export interface ConnectionCheck {
+  guide: string;
+  toolkit: string;
+  tool: string;
+  status: "pass" | "fail" | "no_connection" | "error";
+  latencyMs?: number;
+  detail?: string;
+  runAt: string;
+}
+
+// Latest result of scripts/smoke_test.py (run daily by .github/workflows/smoke-test.yml).
+export function connectionCheck(slug: string): ConnectionCheck | null {
+  const raw = JSON.parse(fs.readFileSync(path.join(DATA, "smoke-status.json"), "utf-8"));
+  const r = (raw.results ?? []).find((x: { guide: string }) => x.guide === slug);
+  return r && raw.runAt ? { ...r, runAt: raw.runAt } : null;
+}
+
 export function guideSchema(): Record<string, unknown> {
   return JSON.parse(fs.readFileSync(path.join(DATA, "guide.schema.json"), "utf-8"));
 }

@@ -1,7 +1,10 @@
 import type { Metadata } from "next";
 import "./globals.css";
 
+const SITE = process.env.VERCEL_PROJECT_PRODUCTION_URL ? `https://${process.env.VERCEL_PROJECT_PRODUCTION_URL}` : "http://localhost:3000";
+
 export const metadata: Metadata = {
+  metadataBase: new URL(SITE),
   title: "OAuth Ready: setup guides for provider OAuth apps",
   description:
     "Look up an app and get a shareable guide: how hard it is to get your OAuth app approved, how long it takes, what can block you, and what an agent can do for you.",
@@ -20,6 +23,9 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
             </a>
             <a className="link" href="/#library">
               Library
+            </a>
+            <a className="link" href="/how-it-works">
+              How it works
             </a>
             <a className="link" href="/method">
               How we verify
