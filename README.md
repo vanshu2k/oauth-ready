@@ -9,6 +9,7 @@ Look up an app and get a guide you can follow and share: how hard it is to get y
   - [Zoho Recruit](https://oauth-ready-ochre.vercel.app/g/zoho_recruit-mvwvyl9p): self-serve, but you must enable multi-data-centre support.
   - [Teamtailor](https://oauth-ready-ochre.vercel.app/g/teamtailor-mvww8952): no third-party OAuth at all.
 - **How we verify:** [/method](https://oauth-ready-ochre.vercel.app/method) lists the verification run, every correction (ours and the agent's), every conflict between sources, and every question still open.
+- **Design:** the UI follows the Composio dashboard's look, so a guide feels like part of the product a developer is already using. See [Design](#design).
 
 ## The problem, as I understood it
 
@@ -46,6 +47,17 @@ This tool is built for those 156. Apps that Composio already manages or that reg
 4. **Composio's own data as ground truth.** The default scopes and redirect URI come from Composio's catalog, not from the model. This matters because scopes decide which review a developer faces. Composio's default Google Forms scopes include full Drive access, which Google treats as *restricted*: that means an annual third-party security assessment and about 6 weeks of review. Trimming those scopes is the developer's biggest lever, and the guide says so.
 5. **Every step names who does it:** the agent, the developer, the customer's admin, or the provider. Agent steps are limited to work that needs no credentials: choosing scopes, prefilling values, drafting justifications and admin runbooks, checking against published checklists. Every human step says *why* a person is needed.
 6. **One schema for everything.** Library guides, live-generated guides and the page renderer share `data/guide.schema.json`, and the same validator checks both kinds of guide.
+
+## Design
+
+The interface is styled after the Composio dashboard (dashboard.composio.dev). The idea is that a guide could sit next to the toolkit's auth-config screen without looking like a separate product.
+
+- **Layout:** an app shell with a left sidebar (Overview, Library, How we verify, Source) and a slim top bar with breadcrumbs. On phones the sidebar collapses behind a menu button.
+- **Visual language:** Radix slate grays, an indigo accent (`#5753c6`), square corners, black primary buttons, thin borders. Inter for text, JetBrains Mono for labels, claim ids and code.
+- **Dashboard patterns:** small uppercase mono section labels, a bordered stat strip for the catalog numbers on the overview page, flat badges for difficulty, evidence and who does each step.
+- **Dark mode** follows the system setting and uses the matching dark slate palette.
+
+The dashboard itself sits behind a login, so the design values (palette, radius, button style, fonts) were taken from Composio's public sign-in page and marketing site, and the layout from the dashboard's sidebar-and-header structure. All styling lives in `app/globals.css` as CSS variables, and the shell is `components/Shell.tsx`. No UI library was added.
 
 ## How the live agent works (`lib/agent.ts`)
 
@@ -96,7 +108,7 @@ On Vercel:
 1. Import the repository.
 2. Add `ANTHROPIC_API_KEY`.
 3. Connect a Blob store, which sets `BLOB_READ_WRITE_TOKEN`. Without Blob, generated guides still render but don't get a shareable link.
-4. Optionally set `NEXT_PUBLIC_REPO_URL` to show a source link in the header.
+4. Optionally set `NEXT_PUBLIC_REPO_URL` to show a source link in the sidebar.
 
 Check the library guides against the schema and evidence rules:
 
@@ -114,6 +126,8 @@ python scripts/validate_guides.py
 | `data/composio-oauth-catalog.json` | Composio's 387 OAuth toolkits: managed flag, auth schemes, default scopes |
 | `lib/agent.ts` | Live research agent |
 | `lib/validate.ts`, `scripts/validate_guides.py` | Schema and evidence-rule validation (TypeScript at runtime, Python for the library) |
+| `components/Shell.tsx` | App shell: sidebar, breadcrumb top bar, mobile menu |
+| `app/globals.css` | Design tokens (light and dark) and all styling |
 | `components/GuideView.tsx` | Guide page |
 | `app/api/generate/route.ts` | Streams agent progress to the browser; quote-checks and saves the finished guide |
 | `lib/quotecheck.ts`, `scripts/check_quotes.py` | Re-fetch cited pages and check quotes word for word (live guides automatically; library on demand) |
