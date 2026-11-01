@@ -1,5 +1,5 @@
 import type { Metadata } from "next";
-import { curatedGuides } from "@/lib/data";
+import { curatedGuides, verificationRun } from "@/lib/data";
 import { evidenceMix } from "@/lib/evidence";
 import { EVIDENCE, TIER } from "@/lib/format";
 
@@ -7,6 +7,7 @@ export const metadata: Metadata = { title: "How we verify | OAuth Ready" };
 
 export default function MethodPage() {
   const guides = curatedGuides();
+  const run = verificationRun();
   const levels = Object.keys(EVIDENCE) as (keyof typeof EVIDENCE)[];
   const corrections = guides.flatMap((g) => g.corrections.map((c) => ({ app: g.app, ...c })));
   const open = guides.flatMap((g) => g.openQuestions.map((q) => ({ app: g.app, ...q })));
@@ -44,6 +45,65 @@ export default function MethodPage() {
             <li>It can't log in, so it may not mark anything as tested. Guides are labelled "Generated, not yet reviewed".</li>
           </ol>
         </div>
+      </div>
+
+      <h2>Verification run, {run.checkedAt}</h2>
+      <p className="small muted" style={{ maxWidth: 720 }}>
+        We re-checked every quote in the library and in two guides the live agent generated (Zoho Recruit and Teamtailor), against the pages as
+        they are today.
+      </p>
+      <ol className="small" style={{ paddingLeft: 18 }}>
+        {run.method.map((m, i) => (
+          <li key={i}>{m}</li>
+        ))}
+      </ol>
+      <div className="card" style={{ padding: 0, overflowX: "auto", marginTop: 10 }}>
+        <table>
+          <thead>
+            <tr>
+              <th>Guides</th>
+              <th>Quotes</th>
+              <th>Word for word</th>
+              <th>Wording wrong</th>
+              <th>Source gone</th>
+              <th>Note</th>
+            </tr>
+          </thead>
+          <tbody>
+            {run.totals.map((t) => (
+              <tr key={t.set}>
+                <td>
+                  <strong>{t.set}</strong>
+                </td>
+                <td>{t.quotes}</td>
+                <td>{t.verbatim}</td>
+                <td>{t.wordingErrors}</td>
+                <td>{t.deadSources}</td>
+                <td className="small muted">{t.note}</td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </div>
+      <div style={{ marginTop: 14 }}>
+        {run.findings.map((f, i) => (
+          <div key={i} className="card tight small" style={{ marginBottom: 8 }}>
+            <span className={`pill ${{ our_error: "review", agent_error: "gated", source_problem: "inferred", confirmed: "tested" }[f.kind]}`}>
+              {{ our_error: "Our mistake", agent_error: "Agent mistake", source_problem: "Source problem", confirmed: "Confirmed" }[f.kind]}
+            </span>{" "}
+            <strong>{f.subject}:</strong> {f.text}
+          </div>
+        ))}
+      </div>
+      <div className="card" style={{ marginTop: 10 }}>
+        <div className="label" style={{ marginBottom: 6 }}>
+          What we learned
+        </div>
+        <ul className="small" style={{ margin: 0, paddingLeft: 18 }}>
+          {run.lessons.map((l, i) => (
+            <li key={i}>{l}</li>
+          ))}
+        </ul>
       </div>
 
       <h2>Evidence across the library</h2>

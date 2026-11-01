@@ -1,4 +1,5 @@
 import { runAgent } from "@/lib/agent";
+import { checkQuotes } from "@/lib/quotecheck";
 import { saveGuide } from "@/lib/store";
 import type { AgentEvent } from "@/lib/types";
 
@@ -36,6 +37,12 @@ export async function POST(req: Request) {
       try {
         for await (const event of runAgent(query, req.signal)) {
           if (event.type === "done") {
+            send({ type: "status", text: "Re-fetching cited pages to check every quote…" });
+            const q = await checkQuotes(event.guide);
+            send({
+              type: "status",
+              text: `Quote check: ${q.verified} found word for word, ${q.notFound} not found, ${q.unchecked} on pages a plain fetch can't read.`,
+            });
             let id: string | null = null;
             try {
               id = await saveGuide(event.guide);

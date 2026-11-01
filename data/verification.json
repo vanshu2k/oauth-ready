@@ -1,0 +1,73 @@
+{
+  "checkedAt": "2026-11-01",
+  "method": [
+    "scripts/check_quotes.py re-fetched every cited page and checked each quote appears word for word (after normalising whitespace, punctuation and HTML).",
+    "Pages a plain fetch can't read (client-rendered docs, bot protection) were opened in a real browser, and the same check ran against the rendered text.",
+    "A sample of claims was read against the page by hand, to check the claim says what the quote supports, not just that the quote exists."
+  ],
+  "totals": [
+    {
+      "set": "Library guides (5)",
+      "quotes": 38,
+      "verbatim": 35,
+      "wordingErrors": 3,
+      "deadSources": 0,
+      "note": "All 3 wording errors were ours. In each case the fact held but the quote wasn't the page's exact text. Fixed and logged as corrections."
+    },
+    {
+      "set": "Agent-generated guides (Zoho Recruit, Teamtailor)",
+      "quotes": 29,
+      "verbatim": 24,
+      "wordingErrors": 1,
+      "deadSources": 4,
+      "note": "Zoho Recruit: 15 of 15 verbatim. Teamtailor: 9 verbatim, 1 paraphrased, and 4 cite a support article that now shows \"page doesn't exist\"."
+    }
+  ],
+  "findings": [
+    {
+      "kind": "our_error",
+      "subject": "Google Forms",
+      "text": "Our quote for the Forms scopes being SENSITIVE came from a search snippet that had reflowed a table. The table does say SENSITIVE; the quote now matches its real row."
+    },
+    {
+      "kind": "our_error",
+      "subject": "ServiceNow",
+      "text": "We quoted \"On your development instance\"; the live page says \"On your production instance\". The claim (clients are created per instance) is unaffected."
+    },
+    {
+      "kind": "our_error",
+      "subject": "Xero",
+      "text": "Our rate-limit quote added full stops between list items. The numbers are right; the quote now matches the page."
+    },
+    {
+      "kind": "agent_error",
+      "subject": "Teamtailor (agent)",
+      "text": "The agent quoted Nango's page as \"Teamtailor uses API_KEY auth mode\". The page says \"Pre-built authorization (API Key)\". The fact is supported, but the quote is a paraphrase, which the prompt forbids. Live guides are now checked automatically for this."
+    },
+    {
+      "kind": "source_problem",
+      "subject": "Teamtailor (agent)",
+      "text": "The agent cited Teamtailor's \"Integrate your HR/recruitment tool\" article for 4 claims. Today that URL shows \"page doesn't exist\" in a browser, though Teamtailor's partner index still links to it and a search-index copy contains the quoted text. Sources rot; claims need a re-check date."
+    },
+    {
+      "kind": "confirmed",
+      "subject": "Teamtailor (agent)",
+      "text": "The agent's headline finding holds: the word \"OAuth\" appears nowhere in Teamtailor's 20,000-character API docs, which document API-key auth only. It labelled \"no OAuth found\" as unknown rather than fact, which is the right call for an absence."
+    },
+    {
+      "kind": "confirmed",
+      "subject": "Zoho Recruit (agent)",
+      "text": "Spot-checked: access tokens last an hour (\"Each access token is valid for only an hour\"), and the 20-refresh-tokens-per-user limit is not on Zoho's official token page, which is why the agent correctly labelled it third-party."
+    },
+    {
+      "kind": "confirmed",
+      "subject": "Xero",
+      "text": "\"Ten active customer connections\" appears on Xero's partner guide, settling part of an open question; the exact rule is still unclear."
+    }
+  ],
+  "lessons": [
+    "Quotes from search snippets are not quotes. They get reflowed and can come from older versions of a page. Quote from the page itself.",
+    "A plain HTTP fetch can't read most modern docs sites (Xero, Teamtailor and ServiceNow render in the browser; Zoho blocks bots). Verification needs a real browser.",
+    "The agent gets quotes right most of the time (24 of 25 on pages that still exist), but not always, so every live guide's quotes are now checked when it's generated."
+  ]
+}

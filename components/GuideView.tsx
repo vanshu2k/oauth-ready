@@ -318,6 +318,15 @@ export default function GuideView({ guide: g, shareUrl }: { guide: Guide; shareU
                 <span className="faint">
                   {s.publisher.replace("_", " ")} · retrieved {s.retrievedAt}
                 </span>
+                {s.quoteCheck && (
+                  <span
+                    className={`pill ${{ verified: "tested", not_found: "unknown", unreadable: "inferred" }[s.quoteCheck]}`}
+                    style={{ marginLeft: 6, fontSize: 11, padding: "1px 7px" }}
+                    title="Automated re-fetch of the page after the guide was generated"
+                  >
+                    {{ verified: "Quote found on page", not_found: "Quote not found on page", unreadable: "Couldn't auto-check" }[s.quoteCheck]}
+                  </span>
+                )}
               </div>
             ))}
             {c.evidence.testNote && <div className="aside">{c.evidence.testNote}</div>}

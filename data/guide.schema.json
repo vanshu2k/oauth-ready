@@ -290,7 +290,11 @@
               "title": { "type": "string" },
               "publisher": { "enum": ["provider", "composio", "third_party", "community"] },
               "quote": { "type": "string", "maxLength": 400 },
-              "retrievedAt": { "type": "string", "format": "date" }
+              "retrievedAt": { "type": "string", "format": "date" },
+              "quoteCheck": {
+                "description": "Set by the server after generation, never by the author: did an automated re-fetch find the quote on the page?",
+                "enum": ["verified", "not_found", "unreadable"]
+              }
             }
           }
         },

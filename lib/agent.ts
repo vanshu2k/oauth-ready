@@ -244,6 +244,8 @@ function normalize(input: Guide, toolkit: CatalogToolkit | null): Guide {
     g.composioSetup.defaultScopes = toolkit.defaultScopes;
     g.composioSetup.redirectUri = COMPOSIO_REDIRECT;
   }
+  // quoteCheck is the server's verdict (lib/quotecheck.ts), never the author's.
+  for (const c of g.claims ?? []) for (const s of c.evidence?.sources ?? []) delete s.quoteCheck;
   g.meta = { generatedBy: "live_agent", generatedAt: new Date().toISOString(), model: MODEL, humanReviewed: false };
   return g;
 }

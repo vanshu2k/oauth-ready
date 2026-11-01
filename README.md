@@ -60,10 +60,16 @@ Server-side refusal fallback (`fallbacks: "default"`) is enabled, so a false-pos
 
 ## What was verified
 
+**Quote check (2026-11-01).** Every quote was re-checked against the live page, using a plain fetch first and a real browser for pages that render client-side or block bots (`docs/04-verification-log.md`):
+- **Library:** 35 of 38 quotes are word for word. The other 3 were our mistakes: two quotes taken from search snippets, one with added punctuation. All are fixed and logged.
+- **Two agent-generated guides:** 24 of 29 word for word. One paraphrased quote, and 4 quotes cite a support article that has since disappeared.
+- **As a result,** every live-generated guide now gets an automatic quote check (`lib/quotecheck.ts`), shown as a badge on each source.
+
 See `/method` in the app and the notes in `docs/`:
 - `docs/01-demo-app-shortlist.md`: how the 5 apps were picked from Composio's catalog.
 - `docs/02-guide-design.md`: schema and design decisions, and what the first guide changed.
 - `docs/03-hands-on-checklist.md`: research results and the hands-on test plan.
+- `docs/04-verification-log.md`: the quote check, the mistakes it found (ours and the agent's), and what changed as a result.
 
 **Corrections found while researching:**
 - **Xero:** older third-party pages say 25 free connections; Xero's current pricing says **5**, then paid tiers.

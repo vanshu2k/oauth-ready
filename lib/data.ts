@@ -31,6 +31,18 @@ export function catalog(): CatalogToolkit[] {
   return catalogCache;
 }
 
+export interface VerificationRun {
+  checkedAt: string;
+  method: string[];
+  totals: { set: string; quotes: number; verbatim: number; wordingErrors: number; deadSources: number; note: string }[];
+  findings: { kind: "our_error" | "agent_error" | "source_problem" | "confirmed"; subject: string; text: string }[];
+  lessons: string[];
+}
+
+export function verificationRun(): VerificationRun {
+  return JSON.parse(fs.readFileSync(path.join(DATA, "verification.json"), "utf-8"));
+}
+
 export function guideSchema(): Record<string, unknown> {
   return JSON.parse(fs.readFileSync(path.join(DATA, "guide.schema.json"), "utf-8"));
 }

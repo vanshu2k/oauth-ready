@@ -44,6 +44,7 @@ export interface Source {
   publisher: "provider" | "composio" | "third_party" | "community";
   quote?: string;
   retrievedAt: string;
+  quoteCheck?: "verified" | "not_found" | "unreadable";
 }
 
 export interface Claim {

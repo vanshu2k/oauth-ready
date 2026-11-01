@@ -10,28 +10,63 @@
   "verdict": {
     "tier": "review",
     "summary": "Testing takes minutes; going public needs Google verification. Composio's defaults include full Drive access (restricted), which means a yearly third-party security assessment and about 6 weeks. Dropping the Drive scopes is your biggest lever.",
-    "whoMustAct": ["developer", "agent", "provider"],
+    "whoMustAct": [
+      "developer",
+      "agent",
+      "provider"
+    ],
     "customerAdminRequired": false,
     "cost": {
       "summary": "Google charges nothing for verification. With restricted scopes you pay a Google-approved third-party assessor for the annual security assessment; the price isn't published by Google.",
-      "claimIds": ["casa-annual"]
+      "claimIds": [
+        "casa-annual"
+      ]
     },
-    "claimIds": ["verification-times", "drive-restricted", "casa-annual", "user-cap"]
+    "claimIds": [
+      "verification-times",
+      "drive-restricted",
+      "casa-annual",
+      "user-cap"
+    ]
   },
   "clocks": {
     "firstConnection": {
       "definition": "You (or up to 100 listed test users) connect a Google account through Composio while the app is in Testing.",
-      "effort": { "min": 20, "max": 45, "unit": "minutes" },
-      "wait": { "min": 0, "max": 0, "unit": "minutes" },
+      "effort": {
+        "min": 20,
+        "max": 45,
+        "unit": "minutes"
+      },
+      "wait": {
+        "min": 0,
+        "max": 0,
+        "unit": "minutes"
+      },
       "summary": "Same-day, but test users' authorizations expire after 7 days, so expect to reconnect weekly while testing.",
-      "claimIds": ["testing-expiry", "first-connection-time"]
+      "claimIds": [
+        "testing-expiry",
+        "first-connection-time"
+      ]
     },
     "production": {
       "definition": "Any Google user can connect without the 'unverified app' warning or the 100-user cap.",
-      "effort": { "min": 2, "max": 5, "unit": "days" },
-      "wait": { "min": 6, "max": 8, "unit": "weeks" },
+      "effort": {
+        "min": 2,
+        "max": 5,
+        "unit": "days"
+      },
+      "wait": {
+        "min": 6,
+        "max": 8,
+        "unit": "weeks"
+      },
       "summary": "With default scopes: restricted-scope verification (Google estimates 6 weeks) plus a security assessment. Without the full Drive scopes, sensitive-scope verification (about 10 business days) plus brand verification (2–3 business days).",
-      "claimIds": ["verification-times", "drive-restricted", "casa-annual", "prep-effort"]
+      "claimIds": [
+        "verification-times",
+        "drive-restricted",
+        "casa-annual",
+        "prep-effort"
+      ]
     }
   },
   "stages": [
@@ -46,8 +81,14 @@
           "actor": "developer",
           "instructions": "In Google Cloud Console, create a project and enable the Google Forms API (and the Drive API if you keep Drive scopes).",
           "whyHuman": "Needs your Google account and acceptance of Google Cloud terms.",
-          "links": ["https://console.cloud.google.com/"],
-          "estimate": { "min": 5, "max": 10, "unit": "minutes" },
+          "links": [
+            "https://console.cloud.google.com/"
+          ],
+          "estimate": {
+            "min": 5,
+            "max": 10,
+            "unit": "minutes"
+          },
           "claimIds": []
         },
         {
@@ -56,9 +97,19 @@
           "actor": "developer",
           "instructions": "Pick the audience: Internal if only your own Workspace org will connect (no verification needed), otherwise External. Leave publishing status as Testing and add yourself as a test user. Under Data Access, add only the scopes you need; the console groups them as non-sensitive, sensitive and restricted.",
           "agentHelp": "The agent lists Composio's six default scopes, marks which are restricted, and proposes a trimmed set.",
-          "links": ["https://developers.google.com/workspace/guides/configure-oauth-consent"],
-          "estimate": { "min": 10, "max": 20, "unit": "minutes" },
-          "claimIds": ["internal-exception", "drive-restricted", "console-scope-groups"]
+          "links": [
+            "https://developers.google.com/workspace/guides/configure-oauth-consent"
+          ],
+          "estimate": {
+            "min": 10,
+            "max": 20,
+            "unit": "minutes"
+          },
+          "claimIds": [
+            "internal-exception",
+            "drive-restricted",
+            "console-scope-groups"
+          ]
         },
         {
           "id": "client",
@@ -66,16 +117,28 @@
           "actor": "developer",
           "instructions": "Create an OAuth client ID of type Web application and add Composio's redirect URI as an authorized redirect URI. Copy the client ID and secret into a Composio custom auth config, with the trimmed scopes.",
           "whyHuman": "The secret is created in your Google account.",
-          "estimate": { "min": 5, "max": 10, "unit": "minutes" },
-          "claimIds": ["composio-redirect"]
+          "estimate": {
+            "min": 5,
+            "max": 10,
+            "unit": "minutes"
+          },
+          "claimIds": [
+            "composio-redirect"
+          ]
         },
         {
           "id": "test-connect",
           "title": "Connect a test user and make a test call",
           "actor": "developer",
           "instructions": "Connect via a Composio Connect Link. You'll see an 'unverified app' warning, which is expected in Testing. Then run a read tool (for example, get a form).",
-          "estimate": { "min": 5, "max": 10, "unit": "minutes" },
-          "claimIds": ["testing-expiry"]
+          "estimate": {
+            "min": 5,
+            "max": 10,
+            "unit": "minutes"
+          },
+          "claimIds": [
+            "testing-expiry"
+          ]
         }
       ]
     },
@@ -91,8 +154,14 @@
           "instructions": "Publish a homepage and a privacy policy on a domain you own, verify that domain in Search Console, and fill in the app name and logo.",
           "agentHelp": "The agent drafts a privacy policy section on Google user data and checks that your URLs resolve on the authorized domain.",
           "whyHuman": "Domain ownership and the legal text are yours.",
-          "estimate": { "min": 2, "max": 6, "unit": "hours" },
-          "claimIds": ["verification-times"]
+          "estimate": {
+            "min": 2,
+            "max": 6,
+            "unit": "hours"
+          },
+          "claimIds": [
+            "verification-times"
+          ]
         },
         {
           "id": "submit",
@@ -101,7 +170,10 @@
           "instructions": "Switch to In production and submit. For each sensitive or restricted scope, explain why a narrower one won't do. Google may ask for a demo video showing the consent flow and how the data is used.",
           "agentHelp": "The agent drafts the per-scope justifications and a demo-video script.",
           "whyHuman": "You submit as the app owner and answer Google's reviewers.",
-          "claimIds": ["verification-times", "demo-video"]
+          "claimIds": [
+            "verification-times",
+            "demo-video"
+          ]
         },
         {
           "id": "casa",
@@ -109,22 +181,80 @@
           "actor": "provider",
           "instructions": "If you keep drive or drive.readonly, a Google-empanelled assessor checks your app against the CASA framework. Repeat at least every 12 months.",
           "whyHuman": "You contract with and work alongside the assessor.",
-          "links": ["https://developers.google.com/identity/protocols/oauth2/production-readiness/restricted-scope-verification"],
-          "claimIds": ["casa-annual"]
+          "links": [
+            "https://developers.google.com/identity/protocols/oauth2/production-readiness/restricted-scope-verification"
+          ],
+          "claimIds": [
+            "casa-annual"
+          ]
         }
       ]
     }
   ],
   "requirements": [
-    { "id": "req-project", "kind": "account", "description": "A Google Cloud project with the Forms API enabled.", "neededFor": "first_connection", "claimIds": [] },
-    { "id": "req-domain", "kind": "verified_domain", "description": "Homepage and privacy policy on a domain you've verified.", "neededFor": "production", "claimIds": ["verification-times"] },
-    { "id": "req-privacy", "kind": "privacy_policy", "description": "Privacy policy covering Google user data.", "neededFor": "production", "claimIds": ["verification-times"] },
-    { "id": "req-video", "kind": "demo_video", "description": "Demo video of the consent flow and data use (commonly requested for sensitive and restricted scopes).", "neededFor": "production", "claimIds": ["demo-video"] },
-    { "id": "req-casa", "kind": "security_assessment", "description": "Annual CASA assessment by a Google-empanelled assessor, only if restricted scopes are kept.", "neededFor": "production", "claimIds": ["casa-annual"] }
+    {
+      "id": "req-project",
+      "kind": "account",
+      "description": "A Google Cloud project with the Forms API enabled.",
+      "neededFor": "first_connection",
+      "claimIds": []
+    },
+    {
+      "id": "req-domain",
+      "kind": "verified_domain",
+      "description": "Homepage and privacy policy on a domain you've verified.",
+      "neededFor": "production",
+      "claimIds": [
+        "verification-times"
+      ]
+    },
+    {
+      "id": "req-privacy",
+      "kind": "privacy_policy",
+      "description": "Privacy policy covering Google user data.",
+      "neededFor": "production",
+      "claimIds": [
+        "verification-times"
+      ]
+    },
+    {
+      "id": "req-video",
+      "kind": "demo_video",
+      "description": "Demo video of the consent flow and data use (commonly requested for sensitive and restricted scopes).",
+      "neededFor": "production",
+      "claimIds": [
+        "demo-video"
+      ]
+    },
+    {
+      "id": "req-casa",
+      "kind": "security_assessment",
+      "description": "Annual CASA assessment by a Google-empanelled assessor, only if restricted scopes are kept.",
+      "neededFor": "production",
+      "claimIds": [
+        "casa-annual"
+      ]
+    }
   ],
   "limits": [
-    { "id": "lim-users", "what": "New users while unverified", "value": "100 (lifetime cap; then sign-in is disabled)", "appliesWhen": "Sensitive or restricted scopes, not yet verified", "claimIds": ["user-cap"] },
-    { "id": "lim-testing", "what": "Test-user authorization lifetime", "value": "7 days", "appliesWhen": "External app in Testing status", "claimIds": ["testing-expiry"] }
+    {
+      "id": "lim-users",
+      "what": "New users while unverified",
+      "value": "100 (lifetime cap; then sign-in is disabled)",
+      "appliesWhen": "Sensitive or restricted scopes, not yet verified",
+      "claimIds": [
+        "user-cap"
+      ]
+    },
+    {
+      "id": "lim-testing",
+      "what": "Test-user authorization lifetime",
+      "value": "7 days",
+      "appliesWhen": "External app in Testing status",
+      "claimIds": [
+        "testing-expiry"
+      ]
+    }
   ],
   "gotchas": [
     {
@@ -132,27 +262,36 @@
       "symptom": "Connections fail with invalid_grant about a week after users connect.",
       "cause": "In Testing, test users' authorizations expire 7 days after consent.",
       "fix": "Reconnect, or move to In production (which triggers verification for sensitive and restricted scopes).",
-      "claimIds": ["testing-expiry"]
+      "claimIds": [
+        "testing-expiry"
+      ]
     },
     {
       "id": "g-cap",
       "symptom": "New users see 'Sign in with Google temporarily disabled for this app'.",
       "cause": "The unverified app used up its 100-new-user cap.",
       "fix": "Finish verification. Plan for it before launch, not after.",
-      "claimIds": ["user-cap"]
+      "claimIds": [
+        "user-cap"
+      ]
     },
     {
       "id": "g-scope-creep",
       "symptom": "Your verified app suddenly shows the unverified warning again.",
       "cause": "You added a sensitive or restricted scope that wasn't part of the verified set.",
       "fix": "Submit the new scope for verification before shipping it (and reassessment if it's restricted).",
-      "claimIds": ["user-cap", "casa-annual"]
+      "claimIds": [
+        "user-cap",
+        "casa-annual"
+      ]
     }
   ],
   "composioSetup": {
     "toolkitSlug": "googleforms",
     "managedOAuthAvailable": false,
-    "authSchemes": ["OAUTH2"],
+    "authSchemes": [
+      "OAUTH2"
+    ],
     "redirectUri": "https://backend.composio.dev/api/v1/auth-apps/add",
     "defaultScopes": [
       "https://www.googleapis.com/auth/forms.body",
@@ -163,59 +302,154 @@
       "https://www.googleapis.com/auth/drive.readonly"
     ],
     "scopeNotes": [
-      { "scope": "https://www.googleapis.com/auth/drive", "sensitivity": "restricted", "note": "Full Drive access. This is what triggers the security assessment. Remove it unless your agent truly needs every file." },
-      { "scope": "https://www.googleapis.com/auth/drive.readonly", "sensitivity": "restricted", "note": "Also restricted. Remove it for the same reason." },
-      { "scope": "https://www.googleapis.com/auth/drive.file", "sensitivity": "basic", "note": "Only files the user opens or creates with your app. Google's recommended, non-sensitive choice." },
-      { "scope": "forms.body / forms.body.readonly / forms.responses.readonly", "sensitivity": "sensitive", "note": "Reported as sensitive by third parties: verification is still needed, but no security assessment. Confirm in the console's Data Access page." }
+      {
+        "scope": "https://www.googleapis.com/auth/drive",
+        "sensitivity": "restricted",
+        "note": "Full Drive access. This is what triggers the security assessment. Remove it unless your agent truly needs every file."
+      },
+      {
+        "scope": "https://www.googleapis.com/auth/drive.readonly",
+        "sensitivity": "restricted",
+        "note": "Also restricted. Remove it for the same reason."
+      },
+      {
+        "scope": "https://www.googleapis.com/auth/drive.file",
+        "sensitivity": "basic",
+        "note": "Only files the user opens or creates with your app. Google's recommended, non-sensitive choice."
+      },
+      {
+        "scope": "forms.body / forms.body.readonly / forms.responses.readonly",
+        "sensitivity": "sensitive",
+        "note": "Reported as sensitive by third parties: verification is still needed, but no security assessment. Confirm in the console's Data Access page."
+      }
     ],
-    "claimIds": ["composio-redirect", "composio-scopes", "drive-restricted", "forms-sensitive"]
+    "claimIds": [
+      "composio-redirect",
+      "composio-scopes",
+      "drive-restricted",
+      "forms-sensitive"
+    ]
   },
   "claims": [
     {
       "id": "verification-times",
       "text": "Google's expected verification times are 2–3 business days for brand verification, 10 business days for sensitive scopes, and 6 weeks for restricted scopes (which add a security assessment). Brand verification checks the logo, display name, URLs and domain ownership.",
-      "evidence": { "level": "official", "sources": [{ "url": "https://support.google.com/cloud/answer/13463817?hl=en", "title": "Frequently Asked Questions - Google Cloud Platform Console Help", "publisher": "provider", "quote": "Brand Verification ... 2-3 Business days | Sensitive Scope Verification ... 10 Business days | Restricted Scope Verification ... 6 weeks", "retrievedAt": "2026-11-01" }] },
+      "evidence": {
+        "level": "official",
+        "sources": [
+          {
+            "url": "https://support.google.com/cloud/answer/13463817?hl=en",
+            "title": "Frequently Asked Questions - Google Cloud Platform Console Help",
+            "publisher": "provider",
+            "quote": "Brand Verification ... 2-3 Business days | Sensitive Scope Verification ... 10 Business days | Restricted Scope Verification ... 6 weeks",
+            "retrievedAt": "2026-11-01"
+          }
+        ]
+      },
       "checkedAt": "2026-11-01"
     },
     {
       "id": "user-cap",
       "text": "Unverified apps using sensitive or restricted scopes have a 100-new-user cap; when it's used up, Google sign-in is disabled for the app.",
-      "evidence": { "level": "official", "sources": [{ "url": "https://support.google.com/cloud/answer/13463817?hl=en", "publisher": "provider", "quote": "Failure to get your app verified before making requests to sensitive or restricted scopes will result in your project's 100 new-user cap eventually getting exhausted and Google sign-in being disabled for your users.", "retrievedAt": "2026-11-01" }] },
+      "evidence": {
+        "level": "official",
+        "sources": [
+          {
+            "url": "https://support.google.com/cloud/answer/13463817?hl=en",
+            "publisher": "provider",
+            "quote": "Failure to get your app verified before making requests to sensitive or restricted scopes will result in your project's 100 new-user cap eventually getting exhausted and Google sign-in being disabled for your users.",
+            "retrievedAt": "2026-11-01"
+          }
+        ]
+      },
       "checkedAt": "2026-11-01"
     },
     {
       "id": "testing-expiry",
       "text": "For an External app in Testing status, test users' authorizations (refresh tokens) expire 7 days after consent.",
-      "evidence": { "level": "official", "sources": [
-        { "url": "https://support.google.com/cloud/answer/15549945?hl=en", "title": "Manage App Audience", "publisher": "provider", "quote": "Authorizations by a test user will expire seven days from the time of consent.", "retrievedAt": "2026-11-01" },
-        { "url": "https://developers.google.com/google-ads/api/docs/get-started/common-errors", "publisher": "provider", "quote": "A Google Cloud Platform project with an OAuth consent screen configured for an external user type and a publishing status of Testing is issued a refresh token expiring in 7 days.", "retrievedAt": "2026-11-01" }
-      ] },
+      "evidence": {
+        "level": "official",
+        "sources": [
+          {
+            "url": "https://support.google.com/cloud/answer/15549945?hl=en",
+            "title": "Manage App Audience",
+            "publisher": "provider",
+            "quote": "Authorizations by a test user will expire seven days from the time of consent.",
+            "retrievedAt": "2026-11-01"
+          },
+          {
+            "url": "https://developers.google.com/google-ads/api/docs/get-started/common-errors",
+            "publisher": "provider",
+            "quote": "A Google Cloud Platform project with an OAuth consent screen configured for an external user type and a publishing status of Testing is issued a refresh token expiring in 7 days.",
+            "retrievedAt": "2026-11-01"
+          }
+        ]
+      },
       "checkedAt": "2026-11-01"
     },
     {
       "id": "drive-restricted",
       "text": "drive and drive.readonly are restricted scopes; drive.file is the narrower, recommended alternative.",
-      "evidence": { "level": "official", "sources": [
-        { "url": "https://developers.google.com/workspace/drive/api/guides/api-specific-auth", "title": "Choose Google Drive API scopes", "publisher": "provider", "quote": "https://www.googleapis.com/auth/drive | View and manage all your Drive files. https://www.googleapis.com/auth/drive.readonly | View and download all your Drive files.", "retrievedAt": "2026-11-01" }
-      ] },
+      "evidence": {
+        "level": "official",
+        "sources": [
+          {
+            "url": "https://developers.google.com/workspace/drive/api/guides/api-specific-auth",
+            "title": "Choose Google Drive API scopes",
+            "publisher": "provider",
+            "quote": "https://www.googleapis.com/auth/drive | View and manage all your Drive files. https://www.googleapis.com/auth/drive.readonly | View and download all your Drive files.",
+            "retrievedAt": "2026-11-01"
+          }
+        ]
+      },
       "checkedAt": "2026-11-01"
     },
     {
       "id": "casa-annual",
       "text": "Apps that access restricted data from or through a third-party server need a security assessment by a Google-approved assessor (CASA framework), repeated at least every 12 months.",
-      "evidence": { "level": "official", "sources": [{ "url": "https://developers.google.com/identity/protocols/oauth2/production-readiness/restricted-scope-verification", "publisher": "provider", "quote": "apps must be reverified for compliance and complete a security assessment at least every 12 months after your assessor's Letter of Assessment (LOA) approval date.", "retrievedAt": "2026-11-01" }] },
+      "evidence": {
+        "level": "official",
+        "sources": [
+          {
+            "url": "https://developers.google.com/identity/protocols/oauth2/production-readiness/restricted-scope-verification",
+            "publisher": "provider",
+            "quote": "apps must be reverified for compliance and complete a security assessment at least every 12 months after your assessor's Letter of Assessment (LOA) approval date.",
+            "retrievedAt": "2026-11-01"
+          }
+        ]
+      },
       "checkedAt": "2026-11-01"
     },
     {
       "id": "internal-exception",
       "text": "Verification exceptions include personal use, development/testing, and internal use within an organization.",
-      "evidence": { "level": "official", "sources": [{ "url": "https://developers.google.com/identity/protocols/oauth2/production-readiness/restricted-scope-verification", "publisher": "provider", "quote": "Exceptions to verification requirements include personal use, development/testing/staging environments, service-owned data only, internal use within an organization, and domain-wide installation.", "retrievedAt": "2026-11-01" }] },
+      "evidence": {
+        "level": "official",
+        "sources": [
+          {
+            "url": "https://developers.google.com/identity/protocols/oauth2/production-readiness/restricted-scope-verification",
+            "publisher": "provider",
+            "quote": "Exceptions to verification requirements include personal use, development/testing/staging environments, service-owned data only, internal use within an organization, and domain-wide installation.",
+            "retrievedAt": "2026-11-01"
+          }
+        ]
+      },
       "checkedAt": "2026-11-01"
     },
     {
       "id": "console-scope-groups",
       "text": "The console's Data Access page groups chosen scopes into non-sensitive, sensitive and restricted, and Google advises picking non-sensitive alternatives to avoid extra review.",
-      "evidence": { "level": "official", "sources": [{ "url": "https://developers.google.com/workspace/guides/configure-oauth-consent", "publisher": "provider", "quote": "Review the scopes listed in each of the three sections: non-sensitive scopes, sensitive scopes, and restricted scopes.", "retrievedAt": "2026-11-01" }] },
+      "evidence": {
+        "level": "official",
+        "sources": [
+          {
+            "url": "https://developers.google.com/workspace/guides/configure-oauth-consent",
+            "publisher": "provider",
+            "quote": "Review the scopes listed in each of the three sections: non-sensitive scopes, sensitive scopes, and restricted scopes.",
+            "retrievedAt": "2026-11-01"
+          }
+        ]
+      },
       "checkedAt": "2026-11-01"
     },
     {
@@ -223,7 +457,14 @@
       "text": "The Forms scopes (forms.body, forms.body.readonly, forms.responses.readonly) are sensitive, not restricted.",
       "evidence": {
         "level": "third_party",
-        "sources": [{ "url": "https://github.com/Sundeepg98/google-docs-mcp/blob/main/SCOPE_EXPANSION_PLAN.md", "publisher": "community", "quote": "forms.body, SENSITIVE, No. forms.responses.readonly, SENSITIVE, No.", "retrievedAt": "2026-11-01" }],
+        "sources": [
+          {
+            "url": "https://raw.githubusercontent.com/Sundeepg98/google-docs-mcp/main/SCOPE_EXPANSION_PLAN.md",
+            "publisher": "community",
+            "quote": ".../auth/forms.body | forms | create / edit forms (forms.create, batchUpdate) | SENSITIVE",
+            "retrievedAt": "2026-11-01"
+          }
+        ],
         "testNote": "Google's scopes page doesn't print the classification; it's shown in the console. To be confirmed in the hands-on attempt."
       },
       "checkedAt": "2026-11-01"
@@ -231,31 +472,61 @@
     {
       "id": "demo-video",
       "text": "Verification of sensitive or restricted scopes may require a demo video of the OAuth flow and how data is used.",
-      "evidence": { "level": "inferred", "sources": [], "testNote": "Widely reported requirement; we did not capture an official quote this pass." },
+      "evidence": {
+        "level": "inferred",
+        "sources": [],
+        "testNote": "Widely reported requirement; we did not capture an official quote this pass."
+      },
       "checkedAt": "2026-11-01"
     },
     {
       "id": "prep-effort",
       "text": "Preparing for verification (domain, privacy policy, justifications, video) takes roughly 2–5 days of hands-on work.",
-      "evidence": { "level": "inferred", "sources": [], "testNote": "Our estimate from the requirements list. Not measured." },
+      "evidence": {
+        "level": "inferred",
+        "sources": [],
+        "testNote": "Our estimate from the requirements list. Not measured."
+      },
       "checkedAt": "2026-11-01"
     },
     {
       "id": "composio-redirect",
       "text": "Composio's default redirect URI for Google Forms is https://backend.composio.dev/api/v1/auth-apps/add.",
-      "evidence": { "level": "official", "sources": [{ "url": "https://docs.composio.dev/data/toolkits.json", "publisher": "composio", "retrievedAt": "2026-11-01" }] },
+      "evidence": {
+        "level": "official",
+        "sources": [
+          {
+            "url": "https://docs.composio.dev/data/toolkits.json",
+            "publisher": "composio",
+            "retrievedAt": "2026-11-01"
+          }
+        ]
+      },
       "checkedAt": "2026-11-01"
     },
     {
       "id": "composio-scopes",
       "text": "Composio's default Google Forms scopes include drive, drive.readonly and drive.file alongside the three Forms scopes.",
-      "evidence": { "level": "official", "sources": [{ "url": "https://docs.composio.dev/data/toolkits.json", "publisher": "composio", "retrievedAt": "2026-11-01" }] },
+      "evidence": {
+        "level": "official",
+        "sources": [
+          {
+            "url": "https://docs.composio.dev/data/toolkits.json",
+            "publisher": "composio",
+            "retrievedAt": "2026-11-01"
+          }
+        ]
+      },
       "checkedAt": "2026-11-01"
     },
     {
       "id": "first-connection-time",
       "text": "A developer can reach a first working test connection in 20 to 45 minutes.",
-      "evidence": { "level": "inferred", "sources": [], "testNote": "Not tested yet. To be replaced by a timed attempt." },
+      "evidence": {
+        "level": "inferred",
+        "sources": [],
+        "testNote": "Not tested yet. To be replaced by a timed attempt."
+      },
       "checkedAt": "2026-11-01"
     }
   ],
@@ -283,7 +554,18 @@
       "after": "About 6 weeks only with Composio's default Drive scopes (restricted). Trimming them makes it sensitive-scope verification, about 10 business days.",
       "why": "The step-1 shortlist treated the default scope set as fixed. The guide now separates the default path from the trimmed path.",
       "sourceUrl": "https://support.google.com/cloud/answer/13463817?hl=en"
+    },
+    {
+      "date": "2026-11-01",
+      "before": "Quoted the source as \"forms.body, SENSITIVE, No.\"",
+      "after": "The source is a table; the quote is now its actual row for forms.body, which is marked SENSITIVE.",
+      "why": "Our quote checker found the earlier text on no page: it came from a search snippet that had reflowed the table. The fact held; the quote did not.",
+      "sourceUrl": "https://raw.githubusercontent.com/Sundeepg98/google-docs-mcp/main/SCOPE_EXPANSION_PLAN.md"
     }
   ],
-  "meta": { "generatedBy": "curated", "generatedAt": "2026-11-01T00:00:00Z", "humanReviewed": false }
+  "meta": {
+    "generatedBy": "curated",
+    "generatedAt": "2026-11-01T00:00:00Z",
+    "humanReviewed": false
+  }
 }

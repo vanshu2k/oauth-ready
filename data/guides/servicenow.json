@@ -10,28 +10,60 @@
   "verdict": {
     "tier": "gated",
     "summary": "There's no central ServiceNow app to register or get approved. Every customer runs their own instance, and their admin has to create the OAuth client in it before anyone there can connect. You can build and test on a free developer instance, but each customer is its own setup.",
-    "whoMustAct": ["developer", "customer_admin", "agent"],
+    "whoMustAct": [
+      "developer",
+      "customer_admin",
+      "agent"
+    ],
     "customerAdminRequired": true,
     "cost": {
       "summary": "No ServiceNow fee for OAuth itself. The free Personal Developer Instance (PDI) covers testing.",
-      "claimIds": ["pdi-reclaim"]
+      "claimIds": [
+        "pdi-reclaim"
+      ]
     },
-    "claimIds": ["per-instance-registry", "composio-per-instance"]
+    "claimIds": [
+      "per-instance-registry",
+      "composio-per-instance"
+    ]
   },
   "clocks": {
     "firstConnection": {
       "definition": "You connect your own Personal Developer Instance through Composio and read an incident.",
-      "effort": { "min": 30, "max": 60, "unit": "minutes" },
-      "wait": { "min": 0, "max": 3, "unit": "days" },
+      "effort": {
+        "min": 30,
+        "max": 60,
+        "unit": "minutes"
+      },
+      "wait": {
+        "min": 0,
+        "max": 3,
+        "unit": "days"
+      },
       "summary": "Mostly waiting to get a developer instance. ServiceNow says demand for PDIs has outpaced capacity.",
-      "claimIds": ["pdi-reclaim", "first-connection-time"]
+      "claimIds": [
+        "pdi-reclaim",
+        "first-connection-time"
+      ]
     },
     "production": {
       "definition": "One customer's users can connect to that customer's instance.",
-      "effort": { "min": 30, "max": 60, "unit": "minutes" },
-      "wait": { "min": 1, "max": 20, "unit": "days" },
+      "effort": {
+        "min": 30,
+        "max": 60,
+        "unit": "minutes"
+      },
+      "wait": {
+        "min": 1,
+        "max": 20,
+        "unit": "days"
+      },
       "summary": "Per customer: their admin creates the OAuth client (minutes of work), but it usually goes through their change process. Repeat for every customer.",
-      "claimIds": ["per-instance-registry", "composio-per-instance", "customer-change-wait"]
+      "claimIds": [
+        "per-instance-registry",
+        "composio-per-instance",
+        "customer-change-wait"
+      ]
     }
   },
   "stages": [
@@ -46,9 +78,17 @@
           "actor": "developer",
           "instructions": "Sign up at developer.servicenow.com and request an instance. Log in to the instance itself (not just the developer site) at least every 10 days, or after 90 days it can be reclaimed.",
           "whyHuman": "Account creation and terms acceptance.",
-          "links": ["https://developer.servicenow.com/"],
-          "estimate": { "min": 10, "max": 20, "unit": "minutes" },
-          "claimIds": ["pdi-reclaim"]
+          "links": [
+            "https://developer.servicenow.com/"
+          ],
+          "estimate": {
+            "min": 10,
+            "max": 20,
+            "unit": "minutes"
+          },
+          "claimIds": [
+            "pdi-reclaim"
+          ]
         },
         {
           "id": "registry",
@@ -57,9 +97,19 @@
           "instructions": "In your instance go to All > System OAuth > Application Registry > New, and choose to create an OAuth API endpoint for external clients. Set the redirect URL to Composio's redirect URI, then save and copy the client ID and secret. Newer releases may label this option '(Deprecated UI)'; see the gotcha below.",
           "agentHelp": "The agent gives you the redirect URI and a written, step-by-step version of this for your customers' admins.",
           "whyHuman": "Requires admin access to the instance.",
-          "links": ["https://www.servicenow.com/docs/r/yokohama/application-development/app-engine-studio/create-oauth-api-endpoints-for-external-clients.html"],
-          "estimate": { "min": 10, "max": 20, "unit": "minutes" },
-          "claimIds": ["per-instance-registry", "composio-redirect", "token-lifespans"]
+          "links": [
+            "https://www.servicenow.com/docs/r/yokohama/application-development/app-engine-studio/create-oauth-api-endpoints-for-external-clients.html"
+          ],
+          "estimate": {
+            "min": 10,
+            "max": 20,
+            "unit": "minutes"
+          },
+          "claimIds": [
+            "per-instance-registry",
+            "composio-redirect",
+            "token-lifespans"
+          ]
         },
         {
           "id": "composio",
@@ -67,8 +117,14 @@
           "actor": "developer",
           "instructions": "Create a ServiceNow auth config with this instance's client ID and secret. When connecting, enter the instance subdomain (for example 'dev12345' for dev12345.service-now.com). Run a read tool.",
           "whyHuman": "Pastes a secret into Composio.",
-          "estimate": { "min": 5, "max": 15, "unit": "minutes" },
-          "claimIds": ["composio-per-instance"]
+          "estimate": {
+            "min": 5,
+            "max": 15,
+            "unit": "minutes"
+          },
+          "claimIds": [
+            "composio-per-instance"
+          ]
         }
       ]
     },
@@ -84,26 +140,67 @@
           "instructions": "The admin repeats the Application Registry step in their own instance with Composio's redirect URI, then sends you the client ID and secret through a secure channel (or enters them in your app).",
           "agentHelp": "The agent produces a one-page admin runbook and the change-request text describing what the integration accesses.",
           "whyHuman": "Only the customer's admin can change their instance, usually through a change ticket.",
-          "claimIds": ["per-instance-registry", "customer-change-wait"]
+          "claimIds": [
+            "per-instance-registry",
+            "customer-change-wait"
+          ]
         },
         {
           "id": "customer-auth-config",
           "title": "Create a separate Composio auth config for that customer",
           "actor": "developer",
           "instructions": "Each instance has its own client ID and secret, so each customer gets its own auth config.",
-          "estimate": { "min": 5, "max": 10, "unit": "minutes" },
-          "claimIds": ["composio-per-instance"]
+          "estimate": {
+            "min": 5,
+            "max": 10,
+            "unit": "minutes"
+          },
+          "claimIds": [
+            "composio-per-instance"
+          ]
         }
       ]
     }
   ],
   "requirements": [
-    { "id": "req-pdi", "kind": "account", "description": "A ServiceNow developer account and a Personal Developer Instance for testing.", "neededFor": "first_connection", "claimIds": ["pdi-reclaim"] },
-    { "id": "req-customer", "kind": "customer_tenant", "description": "An admin at each customer creates the OAuth client in their instance.", "neededFor": "production", "claimIds": ["per-instance-registry"] }
+    {
+      "id": "req-pdi",
+      "kind": "account",
+      "description": "A ServiceNow developer account and a Personal Developer Instance for testing.",
+      "neededFor": "first_connection",
+      "claimIds": [
+        "pdi-reclaim"
+      ]
+    },
+    {
+      "id": "req-customer",
+      "kind": "customer_tenant",
+      "description": "An admin at each customer creates the OAuth client in their instance.",
+      "neededFor": "production",
+      "claimIds": [
+        "per-instance-registry"
+      ]
+    }
   ],
   "limits": [
-    { "id": "lim-pdi", "what": "Developer instance lifetime", "value": "Reclaimed if 90+ days old and no instance login in the last 10 days", "appliesWhen": "Using a PDI", "claimIds": ["pdi-reclaim"] },
-    { "id": "lim-tokens", "what": "Default token lifespans", "value": "Access 30 minutes, refresh 100 days (both adjustable by the instance admin)", "appliesWhen": "Default Application Registry settings", "claimIds": ["token-lifespans"] }
+    {
+      "id": "lim-pdi",
+      "what": "Developer instance lifetime",
+      "value": "Reclaimed if 90+ days old and no instance login in the last 10 days",
+      "appliesWhen": "Using a PDI",
+      "claimIds": [
+        "pdi-reclaim"
+      ]
+    },
+    {
+      "id": "lim-tokens",
+      "what": "Default token lifespans",
+      "value": "Access 30 minutes, refresh 100 days (both adjustable by the instance admin)",
+      "appliesWhen": "Default Application Registry settings",
+      "claimIds": [
+        "token-lifespans"
+      ]
+    }
   ],
   "gotchas": [
     {
@@ -111,39 +208,69 @@
       "symptom": "The 'Create an OAuth API endpoint for external clients' option shows '(Deprecated UI)'.",
       "cause": "Newer releases are moving inbound OAuth setup to a different UI; community answers say the option still works.",
       "fix": "It still works per the community. If it's missing, look for the release's newer inbound integration setup. We haven't tested this yet.",
-      "claimIds": ["deprecated-ui-label"]
+      "claimIds": [
+        "deprecated-ui-label"
+      ]
     },
     {
       "id": "g-pdi-reclaimed",
       "symptom": "Your test connection stops working and the instance URL shows a fresh instance.",
       "cause": "The PDI was reclaimed for inactivity, along with your OAuth client.",
       "fix": "Log in to the instance at least every 10 days. Keep the setup steps written down so you can recreate them.",
-      "claimIds": ["pdi-reclaim"]
+      "claimIds": [
+        "pdi-reclaim"
+      ]
     },
     {
       "id": "g-one-config",
       "symptom": "A second customer can't connect with the auth config you built for the first.",
       "cause": "Client credentials belong to one instance.",
       "fix": "One Composio auth config per customer instance.",
-      "claimIds": ["composio-per-instance"]
+      "claimIds": [
+        "composio-per-instance"
+      ]
     }
   ],
   "composioSetup": {
     "toolkitSlug": "servicenow",
     "managedOAuthAvailable": false,
-    "authSchemes": ["OAUTH2", "BASIC", "S2S_OAUTH2"],
-    "redirectUri": "https://backend.composio.dev/api/v1/auth-apps/add",
-    "defaultScopes": ["useraccount"],
-    "scopeNotes": [
-      { "scope": "useraccount", "sensitivity": "basic", "note": "ServiceNow's broad default scope: the token acts with the connecting user's own roles and ACLs." }
+    "authSchemes": [
+      "OAUTH2",
+      "BASIC",
+      "S2S_OAUTH2"
     ],
-    "claimIds": ["composio-redirect", "composio-per-instance"]
+    "redirectUri": "https://backend.composio.dev/api/v1/auth-apps/add",
+    "defaultScopes": [
+      "useraccount"
+    ],
+    "scopeNotes": [
+      {
+        "scope": "useraccount",
+        "sensitivity": "basic",
+        "note": "ServiceNow's broad default scope: the token acts with the connecting user's own roles and ACLs."
+      }
+    ],
+    "claimIds": [
+      "composio-redirect",
+      "composio-per-instance"
+    ]
   },
   "claims": [
     {
       "id": "per-instance-registry",
       "text": "OAuth clients are created inside a specific ServiceNow instance under System OAuth > Application Registry.",
-      "evidence": { "level": "official", "sources": [{ "url": "https://www.servicenow.com/docs/r/yokohama/application-development/app-engine-studio/create-oauth-api-endpoints-for-external-clients.html", "title": "Create OAuth API endpoints for external clients", "publisher": "provider", "quote": "On your development instance, navigate to All > System OAuth > Application Registry. Select New. Select Create an OAuth API endpoint for ...", "retrievedAt": "2026-11-01" }] },
+      "evidence": {
+        "level": "official",
+        "sources": [
+          {
+            "url": "https://www.servicenow.com/docs/r/yokohama/application-development/app-engine-studio/create-oauth-api-endpoints-for-external-clients.html",
+            "title": "Create OAuth API endpoints for external clients",
+            "publisher": "provider",
+            "quote": "On your production instance, navigate to All ... System OAuth ... Application Registry. 2. Select New. 3. Select Create an OAuth API endpoint for external clients.",
+            "retrievedAt": "2026-11-01"
+          }
+        ]
+      },
       "checkedAt": "2026-11-01"
     },
     {
@@ -151,7 +278,13 @@
       "text": "Composio's ServiceNow auth config takes the client ID and secret, while the instance subdomain is entered per connection. Because credentials belong to one instance, each customer instance needs its own auth config.",
       "evidence": {
         "level": "inferred",
-        "sources": [{ "url": "https://docs.composio.dev/data/toolkits.json", "publisher": "composio", "retrievedAt": "2026-11-01" }],
+        "sources": [
+          {
+            "url": "https://docs.composio.dev/data/toolkits.json",
+            "publisher": "composio",
+            "retrievedAt": "2026-11-01"
+          }
+        ],
         "testNote": "Field placement is official (Composio feed); 'one auth config per instance' is our inference from it. To be tested."
       },
       "checkedAt": "2026-11-01"
@@ -159,37 +292,86 @@
     {
       "id": "pdi-reclaim",
       "text": "ServiceNow reclaims developer instances that are 90+ days old and haven't had an instance login in the last 10 days; developer-site logins don't count.",
-      "evidence": { "level": "official", "sources": [{ "url": "https://www.servicenow.com/community/developer-blog/keeping-pdis-available-for-active-builders-upcoming-pdi/ba-p/3572058", "title": "Keeping PDIs Available for Active Builders (ServiceNow Developer Blog)", "publisher": "provider", "quote": "We're reclaiming PDIs that meet both of these conditions: 90 days or older ... Haven't had a PDI login in the last 10 days", "retrievedAt": "2026-11-01" }] },
+      "evidence": {
+        "level": "official",
+        "sources": [
+          {
+            "url": "https://www.servicenow.com/community/developer-blog/keeping-pdis-available-for-active-builders-upcoming-pdi/ba-p/3572058",
+            "title": "Keeping PDIs Available for Active Builders (ServiceNow Developer Blog)",
+            "publisher": "provider",
+            "quote": "We're reclaiming PDIs that meet both of these conditions: 90 days or older ... Haven't had a PDI login in the last 10 days",
+            "retrievedAt": "2026-11-01"
+          }
+        ]
+      },
       "checkedAt": "2026-11-01"
     },
     {
       "id": "token-lifespans",
       "text": "Default lifespans are 30 minutes for access tokens and 100 days for refresh tokens, both adjustable.",
-      "evidence": { "level": "third_party", "sources": [{ "url": "https://www.servicenow.com/community/developer-blog/oauth-2-0-with-inbound-rest/ba-p/2278926", "title": "OAuth 2.0 with Inbound REST (community blog)", "publisher": "community", "quote": "Refresh Token Lifespan | 8,640,000 seconds (100 days) & can be increased | Access Token Lifespan | 1800 seconds (30 Minutes)", "retrievedAt": "2026-11-01" }] },
+      "evidence": {
+        "level": "third_party",
+        "sources": [
+          {
+            "url": "https://www.servicenow.com/community/developer-blog/oauth-2-0-with-inbound-rest/ba-p/2278926",
+            "title": "OAuth 2.0 with Inbound REST (community blog)",
+            "publisher": "community",
+            "quote": "Refresh Token Lifespan | 8,640,000 seconds (100 days) & can be increased | Access Token Lifespan | 1800 seconds (30 Minutes)",
+            "retrievedAt": "2026-11-01"
+          }
+        ]
+      },
       "checkedAt": "2026-11-01"
     },
     {
       "id": "deprecated-ui-label",
       "text": "In recent releases the 'Create an OAuth API endpoint for external clients' option is labelled '(Deprecated UI)'; a community answer says it isn't deprecated.",
-      "evidence": { "level": "third_party", "sources": [{ "url": "https://www.servicenow.com/community/developer-forum/is-quot-create-an-oauth-api-endpoint-for-external-clients-quot/m-p/3506126", "publisher": "community", "quote": "No its not deprecated.", "retrievedAt": "2026-11-01" }] },
+      "evidence": {
+        "level": "third_party",
+        "sources": [
+          {
+            "url": "https://www.servicenow.com/community/developer-forum/is-quot-create-an-oauth-api-endpoint-for-external-clients-quot/m-p/3506126",
+            "publisher": "community",
+            "quote": "No its not deprecated.",
+            "retrievedAt": "2026-11-01"
+          }
+        ]
+      },
       "checkedAt": "2026-11-01"
     },
     {
       "id": "customer-change-wait",
       "text": "Customer admins typically route new integrations through change management, which can take days to weeks.",
-      "evidence": { "level": "inferred", "sources": [], "testNote": "General enterprise practice, not a ServiceNow rule." },
+      "evidence": {
+        "level": "inferred",
+        "sources": [],
+        "testNote": "General enterprise practice, not a ServiceNow rule."
+      },
       "checkedAt": "2026-11-01"
     },
     {
       "id": "composio-redirect",
       "text": "Composio's default redirect URI for ServiceNow is https://backend.composio.dev/api/v1/auth-apps/add.",
-      "evidence": { "level": "official", "sources": [{ "url": "https://docs.composio.dev/data/toolkits.json", "publisher": "composio", "retrievedAt": "2026-11-01" }] },
+      "evidence": {
+        "level": "official",
+        "sources": [
+          {
+            "url": "https://docs.composio.dev/data/toolkits.json",
+            "publisher": "composio",
+            "retrievedAt": "2026-11-01"
+          }
+        ]
+      },
       "checkedAt": "2026-11-01"
     },
     {
       "id": "first-connection-time",
       "text": "Once a PDI is available, a developer can reach a first working connection in 30 to 60 minutes.",
-      "evidence": { "level": "inferred", "sources": [], "testNote": "Not tested yet." },
+      "evidence": {
+        "level": "inferred",
+        "sources": [],
+        "testNote": "Not tested yet."
+      },
       "checkedAt": "2026-11-01"
     }
   ],
@@ -205,6 +387,18 @@
       "howToResolve": "Check Composio docs for per-connection client credentials, or test with two PDIs."
     }
   ],
-  "corrections": [],
-  "meta": { "generatedBy": "curated", "generatedAt": "2026-11-01T00:00:00Z", "humanReviewed": false }
+  "corrections": [
+    {
+      "date": "2026-11-01",
+      "before": "Quoted the page as \"On your development instance, navigate to...\"",
+      "after": "The live page says \"On your production instance\". The claim (OAuth clients are created per instance in Application Registry) is unchanged.",
+      "why": "Found by re-checking the quote in a real browser; the earlier wording came from a search snippet of a different version of the page.",
+      "sourceUrl": "https://www.servicenow.com/docs/r/yokohama/application-development/app-engine-studio/create-oauth-api-endpoints-for-external-clients.html"
+    }
+  ],
+  "meta": {
+    "generatedBy": "curated",
+    "generatedAt": "2026-11-01T00:00:00Z",
+    "humanReviewed": false
+  }
 }
