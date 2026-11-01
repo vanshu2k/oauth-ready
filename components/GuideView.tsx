@@ -99,7 +99,7 @@ export default function GuideView({ guide: g, shareUrl }: { guide: Guide; shareU
               </a>
             )}
           </div>
-          <p style={{ fontSize: 17, margin: "12px 0 8px" }}>{g.verdict.summary}</p>
+          <p style={{ fontSize: 16, margin: "12px 0 8px" }}>{g.verdict.summary}</p>
           <p className="small muted" style={{ margin: 0 }}>
             {TIER[g.verdict.tier].blurb} <Refs g={g} ids={g.verdict.claimIds} />
           </p>

@@ -27,9 +27,10 @@ export default async function Home() {
 
   return (
     <>
-      <section style={{ padding: "28px 0 8px" }}>
-        <h1 style={{ fontSize: 36, maxWidth: 720 }}>How long until your users can connect?</h1>
-        <p className="muted" style={{ fontSize: 17, maxWidth: 680, margin: "12px 0 22px" }}>
+      <section style={{ padding: "4px 0 8px" }}>
+        <div className="label">Overview</div>
+        <h1 style={{ fontSize: 28, maxWidth: 720, marginTop: 6 }}>How long until your users can connect?</h1>
+        <p className="muted" style={{ fontSize: 15, maxWidth: 680, margin: "10px 0 20px" }}>
           Before your agent's users can connect an app, you may need your own OAuth app, approved by the provider. Look up an app to see how hard
           that is, how long it takes, what can block you, and which steps an agent can do for you.
         </p>
@@ -39,22 +40,25 @@ export default async function Home() {
         </p>
       </section>
 
-      <section className="card" style={{ marginTop: 24 }}>
-        <div className="label">Where the work is</div>
-        <div className="grid3" style={{ marginTop: 10 }}>
-          <div>
-            <div style={{ fontSize: 26, fontWeight: 650 }}>{stats.total}</div>
+      <section style={{ marginTop: 28 }}>
+        <div className="label" style={{ marginBottom: 8 }}>Where the work is</div>
+        <div className="stats">
+          <div className="stat">
+            <div className="stat-k">OAuth toolkits</div>
+            <div className="stat-v">{stats.total}</div>
             <div className="small muted">Composio toolkits support OAuth. For {stats.managed} of them Composio already provides the OAuth app.</div>
           </div>
-          <div>
-            <div style={{ fontSize: 26, fontWeight: 650 }}>{stats.byo}</div>
+          <div className="stat">
+            <div className="stat-k">Bring your own app</div>
+            <div className="stat-v">{stats.byo}</div>
             <div className="small muted">
-              say "bring your own OAuth app", but {stats.dcrOnly} of those are MCP servers that register themselves. Nothing to set up by hand.
+              Toolkits say "bring your own OAuth app", but {stats.dcrOnly} of those are MCP servers that register themselves. Nothing to set up by hand.
             </div>
           </div>
-          <div>
-            <div style={{ fontSize: 26, fontWeight: 650, color: "var(--accent)" }}>{stats.manual}</div>
-            <div className="small muted">need a developer to register an app with the provider. These guides are for them.</div>
+          <div className="stat">
+            <div className="stat-k">Manual setup</div>
+            <div className="stat-v" style={{ color: "var(--accent)" }}>{stats.manual}</div>
+            <div className="small muted">Need a developer to register an app with the provider. These guides are for them.</div>
           </div>
         </div>
       </section>
@@ -66,7 +70,7 @@ export default async function Home() {
           return (
             <a key={g.app.slug} href={`/guides/${g.app.slug}`} className="card" style={{ color: "inherit", textDecoration: "none" }}>
               <div className="row" style={{ justifyContent: "space-between" }}>
-                <h3 style={{ fontSize: 17 }}>
+                <h3 style={{ fontSize: 15 }}>
                   {g.app.name}
                   {mix.tested > 0 && (
                     <span className="pill tested" style={{ marginLeft: 8, fontSize: 11 }}>
@@ -96,7 +100,7 @@ export default async function Home() {
           );
         })}
         <a href="/generate?q=Zoho%20Recruit" className="card" style={{ color: "inherit", textDecoration: "none", borderStyle: "dashed" }}>
-          <h3 style={{ fontSize: 17 }}>Any other app</h3>
+          <h3 style={{ fontSize: 15 }}>Any other app</h3>
           <p className="small muted" style={{ margin: "8px 0 0" }}>
             Type a name or website in the search box. The agent researches it live, shows its work, and saves a guide you can share. Example: Zoho Recruit →
           </p>
