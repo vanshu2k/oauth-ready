@@ -9,7 +9,14 @@ import type { Clock } from "@/lib/types";
 
 export const dynamic = "force-dynamic";
 
-const clock = (c: Clock) => `${formatDuration(c.effort)}${c.wait.max > 0 ? ` + ${formatDuration(c.wait)} wait` : ""}`;
+function ClockTd({ c }: { c: Clock }) {
+  return (
+    <td style={{ whiteSpace: "nowrap" }}>
+      <div className="mono small">{formatDuration(c.effort)}</div>
+      {c.wait.max > 0 && <div className="faint" style={{ fontSize: 12 }}>+ {formatDuration(c.wait)} wait</div>}
+    </td>
+  );
+}
 const nameFromId = (id: string) => id.replace(/-[a-z0-9]+$/, "").replace(/_/g, " ").replace(/\b\w/g, (m) => m.toUpperCase());
 
 export default async function Home() {
@@ -120,8 +127,8 @@ export default async function Home() {
                   <td>
                     <span className={`status ${g.verdict.tier}`}>{TIER[g.verdict.tier].label}</span>
                   </td>
-                  <td className="mono small">{clock(g.clocks.firstConnection)}</td>
-                  <td className="mono small">{clock(g.clocks.production)}</td>
+                  <ClockTd c={g.clocks.firstConnection} />
+                  <ClockTd c={g.clocks.production} />
                   <td className="small">{g.verdict.customerAdminRequired ? "Required" : <span className="faint">No</span>}</td>
                   <td style={{ minWidth: 130 }}>
                     <div className="mixbar" title={`${mix.tested} tested, ${mix.official} official, ${mix.third_party} third-party, ${mix.inferred} inferred`}>

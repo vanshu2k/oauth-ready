@@ -344,3 +344,10 @@ blockquote { margin: 6px 0; padding: 2px 0 2px 12px; border-left: 2px solid var(
 .feature-grid.two .feature:nth-child(2n) { border-right: 0; }
 .feature-grid.two .feature:nth-child(-n+2) { border-bottom: 1px solid var(--border); }
 @media (max-width: 860px) { .feature-grid.two { grid-template-columns: 1fr; } .feature-grid.two .feature { border-bottom: 1px solid var(--border); } .feature-grid.two .feature:last-child { border-bottom: 0; } }
+td .app { white-space: nowrap; }
+.claim, .step-body, .kv > div, td { overflow-wrap: anywhere; }
+@media (max-width: 600px) {
+  .topbar .btn:not(.primary) { display: none; }
+  .crumbs .faint, .crumbs .sep { display: none; }
+  .guide-head .title h1 { font-size: 24px; }
+}

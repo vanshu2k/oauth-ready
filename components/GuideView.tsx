@@ -307,8 +307,8 @@ export default function GuideView({ guide: g, shareUrl, check }: { guide: Guide;
                 <div className="n">{i + 1}</div>
                 <div style={{ minWidth: 0 }}>
                   <div className="row" style={{ justifyContent: "space-between", alignItems: "flex-start", flexWrap: "nowrap" }}>
-                    <span>{c.text}</span>
-                    <span className={`status ${c.evidence.level}`} title={EVIDENCE[c.evidence.level].blurb}>
+                    <span style={{ flex: 1, minWidth: 0, overflowWrap: "anywhere" }}>{c.text}</span>
+                    <span className={`status ${c.evidence.level}`} style={{ flex: "none" }} title={EVIDENCE[c.evidence.level].blurb}>
                       {EVIDENCE[c.evidence.level].label}
                     </span>
                   </div>
