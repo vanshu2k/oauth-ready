@@ -1,11 +1,16 @@
+import AppLogo from "@/components/AppLogo";
+import Icon from "@/components/Icon";
 import SearchBox, { type SearchItem } from "@/components/SearchBox";
+import { catalog, catalogStats, connectionCheck, curatedGuides } from "@/lib/data";
 import { evidenceMix } from "@/lib/evidence";
-import { EVIDENCE, TIER, formatDuration } from "@/lib/format";
-import { catalog, catalogStats, curatedGuides } from "@/lib/data";
+import { TIER, formatDuration } from "@/lib/format";
 import { recentGuides } from "@/lib/store";
-import type { Tier } from "@/lib/types";
+import type { Clock } from "@/lib/types";
 
 export const dynamic = "force-dynamic";
+
+const clock = (c: Clock) => `${formatDuration(c.effort)}${c.wait.max > 0 ? ` + ${formatDuration(c.wait)} wait` : ""}`;
+const nameFromId = (id: string) => id.replace(/-[a-z0-9]+$/, "").replace(/_/g, " ").replace(/\b\w/g, (m) => m.toUpperCase());
 
 export default async function Home() {
   const guides = curatedGuides();
@@ -27,88 +32,61 @@ export default async function Home() {
 
   return (
     <>
-      <section style={{ padding: "4px 0 8px" }}>
-        <div className="label">Overview</div>
-        <h1 style={{ fontSize: 28, maxWidth: 720, marginTop: 6 }}>How long until your users can connect?</h1>
-        <p className="muted" style={{ fontSize: 15, maxWidth: 680, margin: "10px 0 20px" }}>
-          Before your agent's users can connect an app, you may need your own OAuth app, approved by the provider. Look up an app to see how hard
+      <section className="hero">
+        <h1 className="display">
+          How long until your users can <span className="hl">connect?</span>
+        </h1>
+        <p className="lead" style={{ margin: "18px 0 24px" }}>
+          Before your agent&apos;s users can connect an app, you may need your own OAuth app, approved by the provider. Look one up to see how hard
           that is, how long it takes, what can block you, and which steps an agent can do for you.
         </p>
-        <SearchBox items={items} autoFocus />
-        <p className="small faint" style={{ marginTop: 10 }}>
-          Five apps have hand-checked guides (Pipedrive is hands-on tested). Anything else is researched live by an agent in a few minutes and gets its own shareable page.
-        </p>
+        <div id="search">
+          <SearchBox items={items} autoFocus />
+        </div>
+        <div className="try">
+          <span>Try</span>
+          {[
+            { slug: "xero", name: "Xero", href: "/guides/xero" },
+            { slug: "googleforms", name: "Google Forms", href: "/guides/googleforms" },
+            { slug: "zoho_recruit", name: "Zoho Recruit", href: "/generate?q=Zoho%20Recruit" },
+            { slug: "teamtailor", name: "teamtailor.com", href: "/generate?q=teamtailor.com" },
+          ].map((t) => (
+            <a key={t.slug} href={t.href}>
+              <AppLogo slug={t.slug} name={t.name} size={18} />
+              {t.name}
+            </a>
+          ))}
+        </div>
       </section>
 
-      <section style={{ marginTop: 28 }}>
-        <div className="label" style={{ marginBottom: 8 }}>Where the work is</div>
+      <section style={{ marginTop: 36 }}>
         <div className="stats">
           <div className="stat">
-            <div className="stat-k">OAuth toolkits</div>
             <div className="stat-v">{stats.total}</div>
-            <div className="small muted">Composio toolkits support OAuth. For {stats.managed} of them Composio already provides the OAuth app.</div>
+            <div className="stat-k">Composio toolkits with OAuth</div>
           </div>
           <div className="stat">
-            <div className="stat-k">Bring your own app</div>
-            <div className="stat-v">{stats.byo}</div>
-            <div className="small muted">
-              Toolkits say "bring your own OAuth app", but {stats.dcrOnly} of those are MCP servers that register themselves. Nothing to set up by hand.
-            </div>
+            <div className="stat-v">{stats.managed}</div>
+            <div className="stat-k">Composio already provides the app</div>
           </div>
           <div className="stat">
-            <div className="stat-k">Manual setup</div>
-            <div className="stat-v" style={{ color: "var(--accent)" }}>{stats.manual}</div>
-            <div className="small muted">Need a developer to register an app with the provider. These guides are for them.</div>
+            <div className="stat-v">{stats.dcrOnly}</div>
+            <div className="stat-k">Self-registering MCP servers</div>
+          </div>
+          <div className="stat">
+            <div className="stat-v on">{stats.manual}</div>
+            <div className="stat-k">Need a hand-registered app: these guides</div>
           </div>
         </div>
       </section>
 
-      <h2 id="library">Library</h2>
-      <div className="grid2">
-        {guides.map((g) => {
-          const mix = evidenceMix(g);
-          return (
-            <a key={g.app.slug} href={`/guides/${g.app.slug}`} className="card" style={{ color: "inherit", textDecoration: "none" }}>
-              <div className="row" style={{ justifyContent: "space-between" }}>
-                <h3 style={{ fontSize: 15 }}>
-                  {g.app.name}
-                  {mix.tested > 0 && (
-                    <span className="pill tested" style={{ marginLeft: 8, fontSize: 11 }}>
-                      Hands-on tested
-                    </span>
-                  )}
-                </h3>
-                <span className={`pill ${g.verdict.tier}`}>{TIER[g.verdict.tier].label}</span>
-              </div>
-              <p className="small muted" style={{ margin: "8px 0 12px" }}>
-                {g.verdict.summary}
-              </p>
-              <div className="row small">
-                <span>
-                  <span className="faint">Try it:</span> {formatDuration(g.clocks.firstConnection.effort)}
-                  {g.clocks.firstConnection.wait.max > 0 ? ` + ${formatDuration(g.clocks.firstConnection.wait)} wait` : ""}
-                </span>
-                <span>
-                  <span className="faint">Customers:</span> {formatDuration(g.clocks.production.effort)}
-                  {g.clocks.production.wait.max > 0 ? ` + ${formatDuration(g.clocks.production.wait)} wait` : ""}
-                </span>
-              </div>
-              <div className="faint small" style={{ marginTop: 10 }}>
-                {g.claims.length} claims: {(Object.keys(mix) as (keyof typeof mix)[]).filter((k) => mix[k]).map((k) => `${mix[k]} ${EVIDENCE[k].label.toLowerCase()}`).join(", ")}
-              </div>
-            </a>
-          );
-        })}
-        <a href="/generate?q=Zoho%20Recruit" className="card" style={{ color: "inherit", textDecoration: "none", borderStyle: "dashed" }}>
-          <h3 style={{ fontSize: 15 }}>Any other app</h3>
-          <p className="small muted" style={{ margin: "8px 0 0" }}>
-            Type a name or website in the search box. The agent researches it live, shows its work, and saves a guide you can share. Example: Zoho Recruit →
-          </p>
-        </a>
+      <div className="row" style={{ justifyContent: "space-between", alignItems: "baseline", marginTop: 44 }}>
+        <h2 id="library" style={{ margin: 0 }}>
+          Library
+        </h2>
+        <span className="small faint">Hand-checked guides, easiest first</span>
       </div>
-
-      <h2>Compare at a glance</h2>
-      <div className="card" style={{ padding: 0, overflowX: "auto" }}>
+      <div className="table-wrap" style={{ marginTop: 14 }}>
         <table>
           <thead>
             <tr>
@@ -116,28 +94,57 @@ export default async function Home() {
               <th>Difficulty</th>
               <th>You can try it</th>
               <th>Customers can connect</th>
-              <th>Customer admin must act</th>
-              <th>Cost</th>
+              <th>Customer admin</th>
+              <th>Evidence</th>
+              <th />
             </tr>
           </thead>
           <tbody>
             {guides.map((g) => {
-              const clock = (c: typeof g.clocks.firstConnection) =>
-                `${formatDuration(c.effort)} work${c.wait.max > 0 ? ` + ${formatDuration(c.wait)} wait` : ""}`;
+              const mix = evidenceMix(g);
+              const total = g.claims.length || 1;
+              const check = connectionCheck(g.app.slug);
               return (
                 <tr key={g.app.slug}>
                   <td>
-                    <a href={`/guides/${g.app.slug}`}>
-                      <strong>{g.app.name}</strong>
+                    <a className="app" href={`/guides/${g.app.slug}`}>
+                      <AppLogo slug={g.composioSetup.toolkitSlug || g.app.slug} name={g.app.name} />
+                      <span>
+                        {g.app.name.replace(/ \(.*\)$/, "")}
+                        <span className="faint small" style={{ display: "block", fontWeight: 400 }}>
+                          {g.app.category}
+                        </span>
+                      </span>
                     </a>
                   </td>
                   <td>
-                    <span className={`pill ${g.verdict.tier}`}>{TIER[g.verdict.tier].label}</span>
+                    <span className={`status ${g.verdict.tier}`}>{TIER[g.verdict.tier].label}</span>
                   </td>
-                  <td className="small">{clock(g.clocks.firstConnection)}</td>
-                  <td className="small">{clock(g.clocks.production)}</td>
-                  <td className="small">{g.verdict.customerAdminRequired ? "Yes" : "No"}</td>
-                  <td className="small muted">{g.verdict.cost.summary.split(/(?<=\.)\s/)[0]}</td>
+                  <td className="mono small">{clock(g.clocks.firstConnection)}</td>
+                  <td className="mono small">{clock(g.clocks.production)}</td>
+                  <td className="small">{g.verdict.customerAdminRequired ? "Required" : <span className="faint">No</span>}</td>
+                  <td style={{ minWidth: 130 }}>
+                    <div className="mixbar" title={`${mix.tested} tested, ${mix.official} official, ${mix.third_party} third-party, ${mix.inferred} inferred`}>
+                      {(Object.keys(mix) as (keyof typeof mix)[]).map((k) =>
+                        mix[k] ? <span key={k} className={k} style={{ width: `${(mix[k] / total) * 100}%` }} /> : null,
+                      )}
+                    </div>
+                    <div className="faint" style={{ fontSize: 11.5, marginTop: 5 }}>
+                      {mix.tested > 0 ? (
+                        <span style={{ color: "var(--green)" }}>
+                          {mix.tested} tested{check?.status === "pass" ? " · live" : ""}
+                        </span>
+                      ) : (
+                        `${mix.official} official`
+                      )}{" "}
+                      · {g.claims.length} claims
+                    </div>
+                  </td>
+                  <td style={{ textAlign: "right" }}>
+                    <a href={`/guides/${g.app.slug}`} aria-label={`Open ${g.app.name} guide`} className="faint">
+                      <Icon name="arrow" />
+                    </a>
+                  </td>
                 </tr>
               );
             })}
@@ -147,45 +154,59 @@ export default async function Home() {
 
       {recent.length > 0 && (
         <>
-          <h2>Recently generated by the agent</h2>
-          <div className="row">
-            {recent.map((r) => (
-              <a key={r.id} className="btn" href={`/g/${r.id}`}>
-                {r.id.replace(/-[a-z0-9]+$/, "")} <span className="faint small">{r.uploadedAt.toISOString().slice(0, 10)}</span>
-              </a>
-            ))}
+          <div className="row" style={{ justifyContent: "space-between", alignItems: "baseline", marginTop: 44 }}>
+            <h2 style={{ margin: 0 }}>Researched live by the agent</h2>
+            <span className="small faint">Not yet reviewed by a person</span>
+          </div>
+          <div className="table-wrap" style={{ marginTop: 14 }}>
+            <table>
+              <thead>
+                <tr>
+                  <th>App</th>
+                  <th>Generated</th>
+                  <th />
+                </tr>
+              </thead>
+              <tbody>
+                {recent.map((r) => {
+                  const slug = r.id.replace(/-[a-z0-9]+$/, "");
+                  return (
+                    <tr key={r.id}>
+                      <td>
+                        <a className="app" href={`/g/${r.id}`}>
+                          <AppLogo slug={slug} name={nameFromId(r.id)} size={24} />
+                          {nameFromId(r.id)}
+                        </a>
+                      </td>
+                      <td className="mono small faint">{r.uploadedAt.toISOString().slice(0, 16).replace("T", " ")} UTC</td>
+                      <td style={{ textAlign: "right" }}>
+                        <a href={`/g/${r.id}`} aria-label="Open guide" className="faint">
+                          <Icon name="arrow" />
+                        </a>
+                      </td>
+                    </tr>
+                  );
+                })}
+              </tbody>
+            </table>
           </div>
         </>
       )}
 
-      <h2>How to read a guide</h2>
-      <div className="grid2">
-        <div className="card">
-          <div className="label" style={{ marginBottom: 10 }}>
-            Difficulty
-          </div>
-          {(Object.keys(TIER) as Tier[]).map((t) => (
-            <div key={t} className="small" style={{ marginBottom: 8 }}>
-              <span className={`pill ${t}`}>{TIER[t].label}</span> <span className="muted">{TIER[t].blurb}</span>
-            </div>
-          ))}
-          <p className="small muted" style={{ marginTop: 10 }}>
-            Every guide has two clocks: when <em>you</em> can try it, and when <em>your customers</em> can connect. Each is split into hands-on work and
-            time spent waiting on someone else.
+      <div className="card row" style={{ marginTop: 44, justifyContent: "space-between" }}>
+        <div>
+          <h3>New here?</h3>
+          <p className="small muted" style={{ margin: "4px 0 0" }}>
+            See how a guide is built, what each label means, and how every fact is checked.
           </p>
         </div>
-        <div className="card">
-          <div className="label" style={{ marginBottom: 10 }}>
-            Evidence
-          </div>
-          {(Object.keys(EVIDENCE) as (keyof typeof EVIDENCE)[]).map((k) => (
-            <div key={k} className="small" style={{ marginBottom: 8 }}>
-              <span className={`pill ${k}`}>{EVIDENCE[k].label}</span> <span className="muted">{EVIDENCE[k].blurb}</span>
-            </div>
-          ))}
-          <p className="small muted" style={{ marginTop: 10 }}>
-            Any number that rests on less than official or tested evidence is labelled <span className="pill estimate">Estimate</span>.
-          </p>
+        <div className="row">
+          <a className="btn" href="/how-it-works">
+            How it works
+          </a>
+          <a className="btn" href="/method">
+            How we verify
+          </a>
         </div>
       </div>
     </>

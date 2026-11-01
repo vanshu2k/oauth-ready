@@ -58,7 +58,7 @@ export default function Shell({ repoUrl, children }: { repoUrl?: string; childre
           </span>
           <span>
             OAuth Ready
-            <span className="brand-sub">Setup guides</span>
+            <span className="brand-sub">Guides</span>
           </span>
         </a>
         <div className="side-label">Platform</div>
@@ -92,8 +92,11 @@ export default function Shell({ repoUrl, children }: { repoUrl?: string; childre
             <span>{crumb(path)}</span>
           </div>
           <span className="spacer" />
-          <a className="btn" href="/method">
-            Docs
+          <a className="btn" href="https://github.com/vanshu2k/oauth-ready" target="_blank" rel="noreferrer">
+            GitHub
+          </a>
+          <a className="btn primary" href="/#search">
+            Find an app
           </a>
         </header>
         <main>

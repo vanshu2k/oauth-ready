@@ -1,59 +1,12 @@
 // Renders one guide. Pure props, no Node imports, so it works on the server and in the live generator.
-import { weakClaims, evidenceMix } from "@/lib/evidence";
+import { evidenceMix, weakClaims } from "@/lib/evidence";
 import { ACTOR, EVIDENCE, TIER, formatDuration, host } from "@/lib/format";
 import { guideToMarkdown } from "@/lib/markdown";
 import type { Actor, Clock, Guide } from "@/lib/types";
+import AppLogo from "./AppLogo";
 import CopyButton from "./CopyButton";
+import Icon from "./Icon";
 import { StepCheck, StepProgress } from "./StepProgress";
-
-function Refs({ g, ids }: { g: Guide; ids: string[] }) {
-  if (!ids.length) return null;
-  return (
-    <>
-      {ids.map((id) => {
-        const c = g.claims.find((x) => x.id === id);
-        const level = c?.evidence.level ?? "unknown";
-        return (
-          <a key={id} href={`#claim-${id}`} className={`ref ${level}`} title={`${EVIDENCE[level].label}: ${c?.text ?? id}`}>
-            {id}
-          </a>
-        );
-      })}
-    </>
-  );
-}
-
-function ClockCard({ g, title, clock }: { g: Guide; title: string; clock: Clock }) {
-  const weak = weakClaims(g, clock.claimIds);
-  return (
-    <div className="card clock">
-      <div className="row" style={{ justifyContent: "space-between" }}>
-        <div className="label">{title}</div>
-        {weak.length > 0 && (
-          <span className="pill estimate" title={`Partly based on: ${weak.join(", ")}`}>
-            Estimate
-          </span>
-        )}
-      </div>
-      <div className="pair">
-        <div>
-          <div className="faint small">Hands-on work</div>
-          <div className="big">{formatDuration(clock.effort)}</div>
-        </div>
-        <div>
-          <div className="faint small">Waiting on others</div>
-          <div className="big">{formatDuration(clock.wait)}</div>
-        </div>
-      </div>
-      <p className="small muted" style={{ marginBottom: 6 }}>
-        <strong>Done when:</strong> {clock.definition}
-      </p>
-      <p className="small" style={{ margin: 0 }}>
-        {clock.summary} <Refs g={g} ids={clock.claimIds} />
-      </p>
-    </div>
-  );
-}
 
 export interface CheckBadge {
   status: "pass" | "fail" | "no_connection" | "error";
@@ -62,6 +15,58 @@ export interface CheckBadge {
   runAt: string;
 }
 
+// Footnote-style references: [3] links to the third claim in the Evidence list.
+function Refs({ g, ids }: { g: Guide; ids: string[] }) {
+  if (!ids.length) return null;
+  return (
+    <>
+      {ids.map((id) => {
+        const i = g.claims.findIndex((x) => x.id === id);
+        const c = g.claims[i];
+        return (
+          <a key={id} href={`#claim-${id}`} className="ref" title={c ? `${EVIDENCE[c.evidence.level].label}: ${c.text}` : id}>
+            {i + 1}
+          </a>
+        );
+      })}
+    </>
+  );
+}
+
+function ClockCell({ g, title, clock }: { g: Guide; title: string; clock: Clock }) {
+  const weak = weakClaims(g, clock.claimIds);
+  return (
+    <div>
+      <div className="row" style={{ justifyContent: "space-between" }}>
+        <span className="kicker">{title}</span>
+        {weak.length > 0 && (
+          <span className="pill estimate" title={`Partly based on our own estimate: ${weak.join(", ")}`}>
+            Estimate
+          </span>
+        )}
+      </div>
+      <div className="clock-pair">
+        <div>
+          <div className="rail-big">{formatDuration(clock.effort)}</div>
+          <div className="faint">hands-on work</div>
+        </div>
+        <div>
+          <div className="rail-big">{formatDuration(clock.wait)}</div>
+          <div className="faint">waiting on others</div>
+        </div>
+      </div>
+      <p className="small muted" style={{ marginBottom: 4 }}>
+        <span style={{ color: "var(--text)" }}>Done when</span> {clock.definition}
+      </p>
+      <p className="small" style={{ margin: 0 }}>
+        {clock.summary} <Refs g={g} ids={clock.claimIds} />
+      </p>
+    </div>
+  );
+}
+
+const ACTORS: Actor[] = ["agent", "developer", "customer_admin", "provider"];
+
 export default function GuideView({ guide: g, shareUrl, check }: { guide: Guide; shareUrl?: string | null; check?: CheckBadge | null }) {
   const allSteps = g.stages.flatMap((s) => s.steps);
   const byActor = (a: Actor) => allSteps.filter((s) => s.actor === a).length;
@@ -69,345 +74,405 @@ export default function GuideView({ guide: g, shareUrl, check }: { guide: Guide;
   const mix = evidenceMix(g);
   const total = g.claims.length || 1;
   const live = g.meta.generatedBy === "live_agent";
+  const logoSlug = g.composioSetup.toolkitSlug || g.app.slug;
+  let stepNo = 0;
 
   return (
     <article>
-      <div className="row" style={{ justifyContent: "space-between", alignItems: "flex-start", gap: 16 }}>
-        <div>
-          <div className="label">{g.app.category || "OAuth app setup"}</div>
-          <h1 style={{ marginTop: 4 }}>{g.app.name}</h1>
-          <div className="row small muted" style={{ marginTop: 6 }}>
-            <a href={g.app.developerPortal} target="_blank" rel="noreferrer">
-              Developer portal ↗
-            </a>
-            <span>·</span>
-            <span>
-              {live ? "Generated by the research agent" : "Curated guide"} on {g.meta.generatedAt.slice(0, 10)}
-              {g.meta.model ? ` (${g.meta.model})` : ""}
-              {live && !g.meta.humanReviewed ? ". Not yet reviewed by a person." : ""}
-            </span>
+      <header className="guide-head">
+        <div className="title">
+          <AppLogo slug={logoSlug} name={g.app.name} size={46} />
+          <div>
+            <div className="kicker">{g.app.category ? `${g.app.category} · ` : ""}OAuth app setup</div>
+            <h1 style={{ marginTop: 4 }}>{g.app.name}</h1>
+            <div className="small faint" style={{ marginTop: 4 }}>
+              {live ? "Researched by the agent" : "Hand-checked guide"} · {g.meta.generatedAt.slice(0, 10)}
+              {g.meta.model ? ` · ${g.meta.model}` : ""}
+              {live && !g.meta.humanReviewed ? " · not yet reviewed by a person" : ""}
+            </div>
           </div>
         </div>
         <div className="row no-print">
           {shareUrl !== null && <CopyButton label="Copy link" text={shareUrl ?? ""} useLocation={!shareUrl} />}
-          <CopyButton label="Copy as Markdown" text={guideToMarkdown(g)} />
+          <CopyButton label="Copy Markdown" text={guideToMarkdown(g)} />
+          <a className="btn" href={g.app.developerPortal} target="_blank" rel="noreferrer">
+            Developer portal <Icon name="external" size={13} />
+          </a>
         </div>
-      </div>
+      </header>
 
-      {/* Verdict */}
-      <div className="verdict" style={{ marginTop: 22 }}>
-        <div className="card">
-          <div className="row">
-            <span className={`pill ${g.verdict.tier}`}>{TIER[g.verdict.tier].label}</span>
-            {g.verdict.customerAdminRequired && <span className="pill customer_admin">Each customer's admin must act</span>}
-            {g.composioSetup.managedOAuthAvailable && <span className="pill neutral">Composio-managed app available</span>}
-            {mix.tested > 0 && (
-              <a href="#evidence" className="pill tested" title="Some claims come from a real setup attempt, not just docs">
-                Hands-on tested · {mix.tested} claims
-              </a>
-            )}
-            {check && (
-              <span
-                className={`pill ${check.status === "pass" ? "tested" : check.status === "fail" ? "gated" : "neutral"}`}
-                title={`Daily automated check: runs ${check.tool} through Composio on a real connection${check.latencyMs ? ` (${check.latencyMs} ms)` : ""}`}
-              >
-                {{ pass: "Connection works", fail: "Connection check failed", no_connection: "No test connection", error: "Check couldn't run" }[check.status]} ·{" "}
-                {check.runAt.slice(0, 10)}
-              </span>
-            )}
+      <div className="guide-grid">
+        <div style={{ minWidth: 0 }}>
+          <p className="verdict-text">
+            {g.verdict.summary} <Refs g={g} ids={g.verdict.claimIds} />
+          </p>
+          {g.composioSetup.managedOAuthAvailable && (
+            <div className="banner" style={{ marginBottom: 16 }}>
+              Composio already provides an OAuth app for this toolkit. You only need your own for your app name on the consent screen, custom scopes,
+              or a separate rate-limit quota.
+            </div>
+          )}
+
+          <div className="clocks" style={{ marginTop: 18 }}>
+            <ClockCell g={g} title="You can try it" clock={g.clocks.firstConnection} />
+            <ClockCell g={g} title="Customers can connect" clock={g.clocks.production} />
           </div>
-          <p style={{ fontSize: 16, margin: "12px 0 8px" }}>{g.verdict.summary}</p>
-          <p className="small muted" style={{ margin: 0 }}>
-            {TIER[g.verdict.tier].blurb} <Refs g={g} ids={g.verdict.claimIds} />
-          </p>
-        </div>
-        <div className="card">
-          <div className="label">Cost</div>
-          <p className="small" style={{ margin: "6px 0 14px" }}>
-            {g.verdict.cost.summary} <Refs g={g} ids={g.verdict.cost.claimIds} />
-          </p>
-          <div className="label">Who does the steps</div>
-          <div className="row" style={{ marginTop: 8 }}>
-            {(["agent", "developer", "customer_admin", "provider"] as Actor[])
-              .filter((a) => byActor(a) > 0)
-              .map((a) => (
-                <span key={a} className={`pill ${a}`}>
-                  {ACTOR[a]} · {byActor(a)}
+
+          <h2>What to do, in order</h2>
+          <StepProgress slug={g.app.slug} steps={allSteps.map((s) => ({ id: s.id, title: s.title }))} />
+          {g.stages.map((stage, si) => (
+            <section key={stage.id} className="stage">
+              <div className="stage-head">
+                <h3>
+                  <span className="faint mono" style={{ fontSize: 12, marginRight: 8 }}>
+                    {String(si + 1).padStart(2, "0")}
+                  </span>
+                  {stage.name}
+                </h3>
+                <span className="small faint">Unlocks: {stage.unlocks}</span>
+              </div>
+              <ol className="steps">
+                {stage.steps.map((s) => {
+                  stepNo++;
+                  return (
+                    <li key={s.id} id={`step-${s.id}`} className={`step ${s.actor}`}>
+                      <div className="num">{stepNo}</div>
+                      <div className="step-body">
+                        <div className="step-top">
+                          <span className="step-title">
+                            <StepCheck slug={g.app.slug} id={s.id} title={s.title} />
+                            {s.title}
+                          </span>
+                          <span className="row" style={{ gap: 12, flexWrap: "nowrap" }}>
+                            {s.estimate && <span className="faint small mono">{formatDuration(s.estimate)}</span>}
+                            <span className={`status ${s.actor}`}>{ACTOR[s.actor]}</span>
+                          </span>
+                        </div>
+                        <p className="small muted" style={{ margin: "6px 0 0" }}>
+                          {s.instructions} <Refs g={g} ids={s.claimIds} />
+                        </p>
+                        {s.agentHelp && (
+                          <div className="aside agent">
+                            <Icon name="spark" size={14} />
+                            <span>
+                              <span style={{ color: "var(--text)" }}>Agent prepares</span> {s.agentHelp}
+                            </span>
+                          </div>
+                        )}
+                        {s.whyHuman && (
+                          <div className="aside human">
+                            <Icon name="user" size={14} />
+                            <span>
+                              <span style={{ color: "var(--text)" }}>Why a person</span> {s.whyHuman}
+                            </span>
+                          </div>
+                        )}
+                        {s.links && s.links.length > 0 && (
+                          <div className="row small" style={{ marginTop: 8, gap: 14 }}>
+                            {s.links.map((l) => (
+                              <a key={l} href={l} target="_blank" rel="noreferrer" className="row" style={{ gap: 5 }}>
+                                {host(l)} <Icon name="external" size={12} />
+                              </a>
+                            ))}
+                          </div>
+                        )}
+                      </div>
+                    </li>
+                  );
+                })}
+              </ol>
+            </section>
+          ))}
+
+          {g.gotchas.length > 0 && (
+            <>
+              <h2>If you get stuck</h2>
+              <div className="table-wrap">
+                <table>
+                  <thead>
+                    <tr>
+                      <th>You see</th>
+                      <th>Why</th>
+                      <th>Do this</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {g.gotchas.map((x) => (
+                      <tr key={x.id}>
+                        <td className="top" style={{ fontWeight: 500 }}>
+                          {x.symptom}
+                        </td>
+                        <td className="top muted">{x.cause}</td>
+                        <td className="top">
+                          {x.fix} <Refs g={g} ids={x.claimIds} />
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            </>
+          )}
+
+          {(g.requirements.length > 0 || g.limits.length > 0) && (
+            <>
+              <h2>Requirements and limits</h2>
+              <div className="kv">
+                {(["first_connection", "production", "scale"] as const).flatMap((when) => {
+                  const reqs = g.requirements.filter((r) => r.neededFor === when);
+                  if (!reqs.length) return [];
+                  return [
+                    <div key={`${when}-k`} className="k">
+                      {{ first_connection: "To start", production: "To go live", scale: "To scale" }[when]}
+                    </div>,
+                    <div key={`${when}-v`}>
+                      {reqs.map((r) => (
+                        <div key={r.id} style={{ marginBottom: 4 }}>
+                          {r.description} <Refs g={g} ids={r.claimIds} />
+                        </div>
+                      ))}
+                    </div>,
+                  ];
+                })}
+                {g.limits.flatMap((l) => [
+                  <div key={`${l.id}-k`} className="k">
+                    {l.what}
+                  </div>,
+                  <div key={`${l.id}-v`}>
+                    <span className="mono" style={{ fontSize: 13 }}>
+                      {l.value}
+                    </span>{" "}
+                    <span className="faint small">({l.appliesWhen})</span> <Refs g={g} ids={l.claimIds} />
+                  </div>,
+                ])}
+              </div>
+            </>
+          )}
+
+          <h2>Composio setup</h2>
+          <div className="kv">
+            <div className="k">Toolkit</div>
+            <div>
+              <code>{g.composioSetup.toolkitSlug}</code>
+            </div>
+            <div className="k">Auth scheme</div>
+            <div className="row" style={{ gap: 6 }}>
+              {g.composioSetup.authSchemes.map((a) => (
+                <span key={a} className="chip">
+                  {a}
                 </span>
               ))}
-          </div>
-          {assisted > 0 && (
-            <p className="small muted" style={{ margin: "8px 0 0" }}>
-              The agent also prepares material for {assisted} of the steps a person does: prefilled values, drafted text, checklists.
-            </p>
-          )}
-        </div>
-      </div>
-
-      {/* Clocks */}
-      <div className="grid2" style={{ marginTop: 14 }}>
-        <ClockCard g={g} title="Your first working connection" clock={g.clocks.firstConnection} />
-        <ClockCard g={g} title="Customers can connect" clock={g.clocks.production} />
-      </div>
-
-      {/* Steps */}
-      <h2>What to do, in order</h2>
-      <StepProgress slug={g.app.slug} steps={allSteps.map((s) => ({ id: s.id, title: s.title }))} />
-      {g.stages.map((stage, si) => (
-        <section key={stage.id} className="stage">
-          <div className="stage-head">
-            <h3>
-              {si + 1}. {stage.name}
-            </h3>
-            <span className="small muted">Unlocks: {stage.unlocks}</span>
-          </div>
-          <ol className="steps">
-            {stage.steps.map((s, i) => (
-              <li key={s.id} id={`step-${s.id}`} className={`card tight step ${s.actor}`}>
-                <div className="num">{i + 1}</div>
+              <span className="faint small">{g.composioSetup.managedOAuthAvailable ? "Composio-managed app available" : "Bring your own app"}</span>
+            </div>
+            <div className="k">Redirect URI</div>
+            <div className="row" style={{ gap: 8 }}>
+              <code>{g.composioSetup.redirectUri}</code>
+              <CopyButton label="Copy" text={g.composioSetup.redirectUri} small />
+            </div>
+            <div className="k">Default scopes</div>
+            <div className="row" style={{ gap: 6 }}>
+              {g.composioSetup.defaultScopes.length ? (
+                g.composioSetup.defaultScopes.map((s) => <code key={s}>{s.replace("https://www.googleapis.com/auth/", "")}</code>)
+              ) : (
+                <span className="small muted">None. Access is set on the provider app.</span>
+              )}
+            </div>
+            {g.composioSetup.scopeNotes.length > 0 && (
+              <>
+                <div className="k">Scope notes</div>
                 <div>
-                  <div className="row" style={{ justifyContent: "space-between" }}>
-                    <span className="row" style={{ gap: 8 }}>
-                      <StepCheck slug={g.app.slug} id={s.id} title={s.title} />
-                      <strong>{s.title}</strong>
-                    </span>
-                    <span className="row">
-                      {s.estimate && <span className="faint small">{formatDuration(s.estimate)}</span>}
-                      <span className={`pill ${s.actor}`}>{ACTOR[s.actor]}</span>
+                  {g.composioSetup.scopeNotes.map((n) => (
+                    <div key={n.scope} style={{ marginBottom: 8 }}>
+                      <span
+                        className={`status ${{ basic: "instant", sensitive: "review", restricted: "gated", admin_consent: "customer_admin", unknown: "neutral" }[n.sensitivity]}`}
+                      >
+                        {n.sensitivity.replace("_", " ")}
+                      </span>{" "}
+                      <code>{n.scope.replace(/https:\/\/www\.googleapis\.com\/auth\//g, "")}</code>
+                      <div className="small muted" style={{ marginTop: 2 }}>
+                        {n.note}
+                      </div>
+                    </div>
+                  ))}
+                  <Refs g={g} ids={g.composioSetup.claimIds} />
+                </div>
+              </>
+            )}
+          </div>
+
+          <h2 id="evidence">Evidence</h2>
+          <div className="claims">
+            {g.claims.map((c, i) => (
+              <div key={c.id} id={`claim-${c.id}`} className="claim">
+                <div className="n">{i + 1}</div>
+                <div style={{ minWidth: 0 }}>
+                  <div className="row" style={{ justifyContent: "space-between", alignItems: "flex-start", flexWrap: "nowrap" }}>
+                    <span>{c.text}</span>
+                    <span className={`status ${c.evidence.level}`} title={EVIDENCE[c.evidence.level].blurb}>
+                      {EVIDENCE[c.evidence.level].label}
                     </span>
                   </div>
-                  <p className="small" style={{ margin: "6px 0 0" }}>
-                    {s.instructions} <Refs g={g} ids={s.claimIds} />
-                  </p>
-                  {s.agentHelp && (
-                    <div className="aside agent">
-                      <strong>Agent prepares:</strong> {s.agentHelp}
-                    </div>
-                  )}
-                  {s.whyHuman && (
-                    <div className="aside human">
-                      <strong>Why a person:</strong> {s.whyHuman}
-                    </div>
-                  )}
-                  {s.links && s.links.length > 0 && (
-                    <div className="row small" style={{ marginTop: 6 }}>
-                      {s.links.map((l) => (
-                        <a key={l} href={l} target="_blank" rel="noreferrer">
-                          {host(l)} ↗
+                  {c.evidence.sources.map((s, si) => (
+                    <div key={si} className="small" style={{ marginTop: 6 }}>
+                      {s.quote && <blockquote>“{s.quote}”</blockquote>}
+                      <span className="row" style={{ gap: 8 }}>
+                        <a href={s.url} target="_blank" rel="noreferrer">
+                          {s.title || host(s.url)}
                         </a>
-                      ))}
+                        <span className="faint">
+                          {s.publisher.replace("_", " ")} · {s.retrievedAt}
+                        </span>
+                        {s.quoteCheck && (
+                          <span
+                            className={`chip ${{ verified: "tested", not_found: "unknown", unreadable: "inferred" }[s.quoteCheck]}`}
+                            title="Automated re-fetch of the page after the guide was generated"
+                          >
+                            {{ verified: "quote found on page", not_found: "quote not found", unreadable: "not auto-checkable" }[s.quoteCheck]}
+                          </span>
+                        )}
+                      </span>
+                    </div>
+                  ))}
+                  {c.evidence.testNote && (
+                    <div className="aside">
+                      <Icon name={c.evidence.level === "tested" ? "check" : "file"} size={14} />
+                      <span>{c.evidence.testNote}</span>
                     </div>
                   )}
+                  {c.evidence.conflicts?.map((x, xi) => (
+                    <div key={xi} className="aside human">
+                      <Icon name="alert" size={14} />
+                      <span>
+                        <span style={{ color: "var(--text)" }}>Another source says</span> “{x.otherValue}” (
+                        <a href={x.sourceUrl} target="_blank" rel="noreferrer">
+                          {host(x.sourceUrl)}
+                        </a>
+                        ). {x.resolution}
+                      </span>
+                    </div>
+                  ))}
                 </div>
-              </li>
-            ))}
-          </ol>
-        </section>
-      ))}
-
-      {/* Blockers */}
-      {g.gotchas.length > 0 && (
-        <>
-          <h2>If you get stuck</h2>
-          <div className="card" style={{ padding: 0, overflowX: "auto" }}>
-            <table>
-              <thead>
-                <tr>
-                  <th>You see</th>
-                  <th>Why</th>
-                  <th>Do this</th>
-                </tr>
-              </thead>
-              <tbody>
-                {g.gotchas.map((x) => (
-                  <tr key={x.id}>
-                    <td>
-                      <strong>{x.symptom}</strong>
-                    </td>
-                    <td className="muted">{x.cause}</td>
-                    <td>
-                      {x.fix} <Refs g={g} ids={x.claimIds} />
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
-        </>
-      )}
-
-      <div className="grid2" style={{ marginTop: 14 }}>
-        {g.requirements.length > 0 && (
-          <div className="card">
-            <div className="label" style={{ marginBottom: 8 }}>
-              Requirements
-            </div>
-            {(["first_connection", "production", "scale"] as const).map((when) => {
-              const reqs = g.requirements.filter((r) => r.neededFor === when);
-              if (!reqs.length) return null;
-              return (
-                <div key={when} style={{ marginBottom: 10 }}>
-                  <div className="faint small">{{ first_connection: "To start", production: "To go live", scale: "To scale" }[when]}</div>
-                  <ul style={{ margin: "4px 0 0", paddingLeft: 18 }} className="small">
-                    {reqs.map((r) => (
-                      <li key={r.id}>
-                        {r.description} <Refs g={g} ids={r.claimIds} />
-                      </li>
-                    ))}
-                  </ul>
-                </div>
-              );
-            })}
-          </div>
-        )}
-        {g.limits.length > 0 && (
-          <div className="card">
-            <div className="label" style={{ marginBottom: 8 }}>
-              Limits
-            </div>
-            {g.limits.map((l) => (
-              <div key={l.id} className="small" style={{ marginBottom: 8 }}>
-                <strong>{l.what}:</strong> {l.value} <span className="faint">({l.appliesWhen})</span> <Refs g={g} ids={l.claimIds} />
               </div>
             ))}
           </div>
-        )}
-      </div>
 
-      {/* Composio */}
-      <h2>Composio setup</h2>
-      <div className="card">
-        <div className="row small" style={{ marginBottom: 10 }}>
-          <span className="faint">Toolkit</span> <code>{g.composioSetup.toolkitSlug}</code>
-          <span className="faint">Auth schemes</span> {g.composioSetup.authSchemes.map((a) => <code key={a}>{a}</code>)}
-        </div>
-        {g.composioSetup.managedOAuthAvailable && (
-          <div className="banner" style={{ marginBottom: 10 }}>
-            Composio already provides an OAuth app for this toolkit. You need your own only for your app name on the consent screen, custom scopes, or a separate rate-limit quota.
-          </div>
-        )}
-        <div className="row small" style={{ marginBottom: 12 }}>
-          <span className="faint">Redirect URI</span> <code>{g.composioSetup.redirectUri}</code>
-          <CopyButton label="Copy" text={g.composioSetup.redirectUri} small />
-        </div>
-        <div className="faint small" style={{ marginBottom: 6 }}>
-          Scopes Composio requests by default
-        </div>
-        <div className="row" style={{ gap: 6, marginBottom: 12 }}>
-          {g.composioSetup.defaultScopes.length ? (
-            g.composioSetup.defaultScopes.map((s) => <code key={s}>{s}</code>)
-          ) : (
-            <span className="small muted">None. Access is set on the provider app.</span>
-          )}
-        </div>
-        {g.composioSetup.scopeNotes.map((n) => (
-          <div key={n.scope} className="small" style={{ marginBottom: 6 }}>
-            <span className={`pill ${{ basic: "instant", sensitive: "review", restricted: "gated", admin_consent: "customer_admin", unknown: "neutral" }[n.sensitivity]}`}>
-              {n.sensitivity.replace("_", " ")}
-            </span>{" "}
-            <code>{n.scope}</code> {n.note}
-          </div>
-        ))}
-        <div style={{ marginTop: 6 }}>
-          <Refs g={g} ids={g.composioSetup.claimIds} />
-        </div>
-      </div>
-
-      {/* Evidence */}
-      <h2 id="evidence">Evidence</h2>
-      <div className="card">
-        <div className="mixbar" aria-label="Evidence mix">
-          {(Object.keys(mix) as (keyof typeof mix)[]).map((k) =>
-            mix[k] ? <span key={k} className={k} style={{ width: `${(mix[k] / total) * 100}%` }} /> : null,
-          )}
-        </div>
-        <div className="row small" style={{ margin: "10px 0 4px" }}>
-          {(Object.keys(mix) as (keyof typeof mix)[]).map((k) => (
-            <span key={k} className={`pill ${k}`} title={EVIDENCE[k].blurb}>
-              {EVIDENCE[k].label} · {mix[k]}
-            </span>
-          ))}
-        </div>
-        {g.claims.map((c) => (
-          <div key={c.id} id={`claim-${c.id}`} className="claim">
-            <div className="row" style={{ justifyContent: "space-between" }}>
-              <code>{c.id}</code>
-              <span className={`pill ${c.evidence.level}`}>{EVIDENCE[c.evidence.level].label}</span>
+          {(g.openQuestions.length > 0 || g.corrections.length > 0) && (
+            <div className="grid2" style={{ marginTop: 24 }}>
+              {g.openQuestions.length > 0 && (
+                <div className="card">
+                  <div className="kicker" style={{ marginBottom: 10 }}>
+                    Still open
+                  </div>
+                  {g.openQuestions.map((q, i) => (
+                    <div key={i} className="small" style={{ marginBottom: 12 }}>
+                      <div style={{ fontWeight: 500 }}>{q.question}</div>
+                      <div className="muted">{q.whyItMatters}</div>
+                      <div className="faint">To settle it: {q.howToResolve}</div>
+                    </div>
+                  ))}
+                </div>
+              )}
+              {g.corrections.length > 0 && (
+                <div className="card">
+                  <div className="kicker" style={{ marginBottom: 10 }}>
+                    What we corrected
+                  </div>
+                  {g.corrections.map((c, i) => (
+                    <div key={i} className="small" style={{ marginBottom: 12 }}>
+                      <div className="faint">
+                        <s>{c.before}</s>
+                      </div>
+                      <div>{c.after}</div>
+                      <div className="muted">
+                        {c.why}{" "}
+                        <a href={c.sourceUrl} target="_blank" rel="noreferrer">
+                          Source
+                        </a>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              )}
             </div>
-            <p style={{ margin: "6px 0" }}>{c.text}</p>
-            {c.evidence.sources.map((s, i) => (
-              <div key={i} className="small">
-                {s.quote && <blockquote>“{s.quote}”</blockquote>}
-                <a href={s.url} target="_blank" rel="noreferrer">
-                  {s.title || host(s.url)} ↗
-                </a>{" "}
-                <span className="faint">
-                  {s.publisher.replace("_", " ")} · retrieved {s.retrievedAt}
+          )}
+        </div>
+
+        {/* At a glance */}
+        <aside className="rail">
+          <div className="rail-card">
+            <div className="rail-row">
+              <div className="rail-k">Difficulty</div>
+              <span className={`status ${g.verdict.tier}`}>{TIER[g.verdict.tier].label}</span>
+              <div className="small faint" style={{ marginTop: 4 }}>
+                {TIER[g.verdict.tier].blurb}
+              </div>
+            </div>
+            <div className="rail-row">
+              <div className="rail-k">You can try it</div>
+              <div className="rail-big">{formatDuration(g.clocks.firstConnection.effort)}</div>
+              {g.clocks.firstConnection.wait.max > 0 && <div className="small muted">+ {formatDuration(g.clocks.firstConnection.wait)} waiting</div>}
+            </div>
+            <div className="rail-row">
+              <div className="rail-k">Customers can connect</div>
+              <div className="rail-big">{formatDuration(g.clocks.production.effort)}</div>
+              {g.clocks.production.wait.max > 0 && <div className="small muted">+ {formatDuration(g.clocks.production.wait)} waiting</div>}
+            </div>
+            <div className="rail-row">
+              <div className="rail-k">Cost</div>
+              <div className="rail-v">{g.verdict.cost.summary.split(/(?<=\.)\s/)[0]}</div>
+            </div>
+            <div className="rail-row">
+              <div className="rail-k">Each customer&apos;s admin must act</div>
+              <div className="rail-v">{g.verdict.customerAdminRequired ? "Yes" : "No"}</div>
+            </div>
+            <div className="rail-row">
+              <div className="rail-k">Who does the steps</div>
+              {ACTORS.filter((a) => byActor(a) > 0).map((a) => (
+                <div key={a} className="row" style={{ justifyContent: "space-between" }}>
+                  <span className={`status ${a}`}>{ACTOR[a]}</span>
+                  <span className="mono small faint">{byActor(a)}</span>
+                </div>
+              ))}
+              {assisted > 0 && (
+                <div className="small faint" style={{ marginTop: 6 }}>
+                  The agent also prepares material for {assisted} of the human steps.
+                </div>
+              )}
+            </div>
+            {check && (
+              <div className="rail-row">
+                <div className="rail-k">Daily connection check</div>
+                <span
+                  className={`status ${check.status === "pass" ? "pass" : check.status === "fail" ? "fail" : "neutral"}`}
+                  title={`Runs ${check.tool} through Composio on a real connection`}
+                >
+                  {{ pass: "Connection works", fail: "Check failed", no_connection: "No test connection", error: "Check couldn't run" }[check.status]}
                 </span>
-                {s.quoteCheck && (
-                  <span
-                    className={`pill ${{ verified: "tested", not_found: "unknown", unreadable: "inferred" }[s.quoteCheck]}`}
-                    style={{ marginLeft: 6, fontSize: 11, padding: "1px 7px" }}
-                    title="Automated re-fetch of the page after the guide was generated"
-                  >
-                    {{ verified: "Quote found on page", not_found: "Quote not found on page", unreadable: "Couldn't auto-check" }[s.quoteCheck]}
-                  </span>
+                <div className="small faint mono" style={{ marginTop: 3 }}>
+                  {check.runAt.slice(0, 10)}
+                  {check.latencyMs ? ` · ${check.latencyMs} ms` : ""}
+                </div>
+              </div>
+            )}
+            <div className="rail-row">
+              <div className="rail-k">Evidence · {g.claims.length} claims</div>
+              <div className="mixbar" style={{ margin: "6px 0 8px" }}>
+                {(Object.keys(mix) as (keyof typeof mix)[]).map((k) =>
+                  mix[k] ? <span key={k} className={k} style={{ width: `${(mix[k] / total) * 100}%` }} /> : null,
                 )}
               </div>
-            ))}
-            {c.evidence.testNote && <div className="aside">{c.evidence.testNote}</div>}
-            {c.evidence.conflicts?.map((x, i) => (
-              <div key={i} className="aside human small">
-                <strong>Conflicting source:</strong> “{x.otherValue}” (
-                <a href={x.sourceUrl} target="_blank" rel="noreferrer">
-                  {host(x.sourceUrl)}
-                </a>
-                ). {x.resolution}
-              </div>
-            ))}
+              {(Object.keys(mix) as (keyof typeof mix)[])
+                .filter((k) => mix[k])
+                .map((k) => (
+                  <div key={k} className="row" style={{ justifyContent: "space-between" }}>
+                    <span className={`status ${k}`}>{EVIDENCE[k].label}</span>
+                    <span className="mono small faint">{mix[k]}</span>
+                  </div>
+                ))}
+            </div>
           </div>
-        ))}
+        </aside>
       </div>
-
-      {(g.openQuestions.length > 0 || g.corrections.length > 0) && (
-        <div className="grid2" style={{ marginTop: 14 }}>
-          {g.openQuestions.length > 0 && (
-            <div className="card">
-              <div className="label" style={{ marginBottom: 8 }}>
-                Still open
-              </div>
-              {g.openQuestions.map((q, i) => (
-                <div key={i} className="small" style={{ marginBottom: 10 }}>
-                  <strong>{q.question}</strong>
-                  <div className="muted">Why it matters: {q.whyItMatters}</div>
-                  <div className="muted">How to settle it: {q.howToResolve}</div>
-                </div>
-              ))}
-            </div>
-          )}
-          {g.corrections.length > 0 && (
-            <div className="card">
-              <div className="label" style={{ marginBottom: 8 }}>
-                What we corrected
-              </div>
-              {g.corrections.map((c, i) => (
-                <div key={i} className="small" style={{ marginBottom: 10 }}>
-                  <div>
-                    <s className="faint">{c.before}</s>
-                  </div>
-                  <div>{c.after}</div>
-                  <div className="muted">
-                    {c.why}{" "}
-                    <a href={c.sourceUrl} target="_blank" rel="noreferrer">
-                      Source ↗
-                    </a>
-                  </div>
-                </div>
-              ))}
-            </div>
-          )}
-        </div>
-      )}
     </article>
   );
 }

@@ -68,7 +68,7 @@ export function StepProgress({ slug, steps }: { slug: string; steps: { id: strin
               </a>
             </>
           ) : (
-            <strong>All steps done 🎉</strong>
+            <strong style={{ color: "var(--green)" }}>All steps done</strong>
           )}
         </span>
         <span className="faint small">

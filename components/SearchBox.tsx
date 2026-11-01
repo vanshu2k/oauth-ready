@@ -1,7 +1,8 @@
 "use client";
 
 import { useRouter } from "next/navigation";
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
+import AppLogo from "./AppLogo";
 
 export interface SearchItem {
   slug: string;
@@ -16,6 +17,20 @@ export default function SearchBox({ items, autoFocus }: { items: SearchItem[]; a
   const [q, setQ] = useState("");
   const [open, setOpen] = useState(false);
   const [active, setActive] = useState(0);
+  const input = useRef<HTMLInputElement>(null);
+
+  // "/" focuses search from anywhere on the page, like most developer tools.
+  useEffect(() => {
+    const onKey = (e: KeyboardEvent) => {
+      const t = e.target as HTMLElement;
+      if (e.key === "/" && !/^(INPUT|TEXTAREA|SELECT)$/.test(t.tagName) && !t.isContentEditable) {
+        e.preventDefault();
+        input.current?.focus();
+      }
+    };
+    window.addEventListener("keydown", onKey);
+    return () => window.removeEventListener("keydown", onKey);
+  }, []);
 
   const matches = useMemo(() => {
     const s = q.trim().toLowerCase();
@@ -44,6 +59,7 @@ export default function SearchBox({ items, autoFocus }: { items: SearchItem[]; a
       }}
     >
       <input
+        ref={input}
         value={q}
         autoFocus={autoFocus}
         placeholder="Type an app name or website, e.g. Xero, notion.so, Zoho Recruit"
@@ -70,23 +86,28 @@ export default function SearchBox({ items, autoFocus }: { items: SearchItem[]; a
           {options.map((o, i) =>
             o.kind === "item" ? (
               <button type="button" key={o.item.slug} className={i === active ? "on" : ""} onMouseDown={() => go(o.item)}>
+                <AppLogo slug={o.item.slug} name={o.item.name} size={22} />
                 <span className="grow">{o.item.name}</span>
-                {o.item.curated && <span className="pill instant">Ready guide</span>}
-                {!o.item.curated && o.item.managed && <span className="pill neutral">Composio-managed</span>}
-                {!o.item.curated && o.item.dcr && <span className="pill neutral">Self-registering MCP</span>}
-                {!o.item.curated && <span className="faint small">Generate</span>}
+                {o.item.curated && <span className="chip tested">Guide ready</span>}
+                {!o.item.curated && o.item.managed && <span className="chip">Composio-managed</span>}
+                {!o.item.curated && o.item.dcr && <span className="chip">Self-registering MCP</span>}
+                {!o.item.curated && <span className="faint small">Research →</span>}
               </button>
             ) : (
               <button type="button" key="free" className={i === active ? "on" : ""} onMouseDown={() => go()}>
+                <span className="applogo fallback" style={{ width: 22, height: 22 }} aria-hidden>
+                  ✦
+                </span>
                 <span className="grow">
                   Research <strong>{q.trim()}</strong> with the agent
                 </span>
-                <span className="faint small">Live, a few minutes</span>
+                <span className="faint small">Live · a few minutes</span>
               </button>
             ),
           )}
         </div>
       )}
+      <span className="kbd" aria-hidden>/</span>
     </form>
   );
 }

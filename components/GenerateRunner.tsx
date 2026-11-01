@@ -2,9 +2,10 @@
 
 import { useEffect, useRef, useState } from "react";
 import type { AgentEvent, CatalogToolkit, Guide } from "@/lib/types";
+import AppLogo from "./AppLogo";
 import GuideView from "./GuideView";
 
-type LogItem = { icon: string; text: string; tone?: "note" };
+type LogItem = { icon: string; text: string; tone?: "note" | "search-l" | "fetch-l" | "warn-l" };
 
 export default function GenerateRunner({ query }: { query: string }) {
   const [log, setLog] = useState<LogItem[]>([]);
@@ -55,10 +56,10 @@ export default function GenerateRunner({ query }: { query: string }) {
                 add({ icon: "•", text: ev.text });
                 break;
               case "search":
-                add({ icon: "⌕", text: `Searched: ${ev.query}` });
+                add({ icon: "⌕", text: `search  ${ev.query}`, tone: "search-l" });
                 break;
               case "fetch":
-                add({ icon: "↓", text: `Read ${ev.url.replace(/^https?:\/\/(www\.)?/, "").slice(0, 90)}` });
+                add({ icon: "↓", text: `read    ${ev.url.replace(/^https?:\/\/(www\.)?/, "").slice(0, 90)}`, tone: "fetch-l" });
                 break;
               case "note":
                 add({ icon: "›", text: ev.text, tone: "note" });
@@ -67,7 +68,7 @@ export default function GenerateRunner({ query }: { query: string }) {
                 setWriting(ev.chars);
                 break;
               case "validation":
-                add({ icon: "!", text: `Validator found ${ev.errors.length} problem(s); sending them back to the agent to fix: ${ev.errors.slice(0, 2).join("; ")}` });
+                add({ tone: "warn-l", icon: "!", text: `Validator found ${ev.errors.length} problem(s); sending them back to the agent to fix: ${ev.errors.slice(0, 2).join("; ")}` });
                 break;
               case "done":
                 setGuide(ev.guide);
@@ -93,14 +94,17 @@ export default function GenerateRunner({ query }: { query: string }) {
   return (
     <div>
       {!guide && (
-        <>
-          <div className="label">Live research</div>
-          <h1 style={{ marginTop: 4 }}>{query}</h1>
-          <p className="muted" style={{ marginTop: 8 }}>
-            The agent reads the provider's developer docs, opens the developer portal, and writes a guide in the same format as the library.
-            Every fact it uses is labelled with its source. It can't log in or create accounts, so nothing it writes is marked as tested.
+        <section className="hero" style={{ paddingTop: 8 }}>
+          <div className="kicker">Live research</div>
+          <div className="row" style={{ gap: 14, marginTop: 10 }}>
+            <AppLogo slug={toolkit?.slug ?? ""} name={query} size={40} />
+            <h1>{query}</h1>
+          </div>
+          <p className="lead" style={{ marginTop: 14 }}>
+            The agent reads the provider&apos;s developer docs, opens the developer portal, and writes a guide in the same format as the library. Every
+            fact is labelled with its source. It can&apos;t log in or create accounts, so nothing it writes is marked as tested.
           </p>
-        </>
+        </section>
       )}
 
       {toolkit && toolkit.managed && !guide && (
@@ -110,22 +114,20 @@ export default function GenerateRunner({ query }: { query: string }) {
       )}
 
       {!guide && (
-        <div className="card" style={{ marginTop: 16 }}>
-          <div className="row" style={{ justifyContent: "space-between", marginBottom: 12 }}>
-            <div className="row">
-              {running && <span className="spinner" />}
-              <strong>{running ? (writing ? `Writing the guide (${Math.round(writing / 1000)}k characters)` : "Researching") : error ? "Stopped" : "Done"}</strong>
-            </div>
-            <span className="faint small">{elapsed}s</span>
+        <div className="terminal" style={{ marginTop: 18 }}>
+          <div className="terminal-bar">
+            <span className="dots">
+              <i />
+              <i />
+              <i />
+            </span>
+            <span>agent · {query}</span>
+            <span style={{ flex: 1 }} />
+            {running && <span className="spinner" />}
+            <span>{running ? (writing ? `writing guide · ${Math.round(writing / 1000)}k chars` : "researching") : error ? "stopped" : "done"}</span>
+            <span>{elapsed}s</span>
           </div>
-          <ul className="log">
-            {log.map((l, i) => (
-              <li key={i}>
-                <span className="ic">{l.icon}</span>
-                <span className={l.tone === "note" ? "note" : undefined}>{l.text}</span>
-              </li>
-            ))}
-          </ul>
+          <LogList log={log} />
         </div>
       )}
 
@@ -142,22 +144,28 @@ export default function GenerateRunner({ query }: { query: string }) {
               This guide wasn't saved, so it has no shareable link. Use Copy as Markdown to keep it.
             </div>
           )}
-          <details className="card tight no-print" style={{ marginBottom: 20 }}>
-            <summary className="small">
-              How the agent got here: {log.length} steps in {elapsed}s
+          <details className="terminal no-print" style={{ marginBottom: 24 }}>
+            <summary className="terminal-bar" style={{ cursor: "pointer" }}>
+              <span>How the agent got here · {log.length} steps in {elapsed}s</span>
             </summary>
-            <ul className="log" style={{ marginTop: 10 }}>
-              {log.map((l, i) => (
-                <li key={i}>
-                  <span className="ic">{l.icon}</span>
-                  <span className={l.tone === "note" ? "note" : undefined}>{l.text}</span>
-                </li>
-              ))}
-            </ul>
+            <LogList log={log} />
           </details>
           <GuideView guide={guide} shareUrl={shareUrl} />
         </>
       )}
     </div>
+  );
+}
+
+function LogList({ log }: { log: LogItem[] }) {
+  return (
+    <ul className="log">
+      {log.map((l, i) => (
+        <li key={i} className={l.tone}>
+          <span className="ic">{l.icon}</span>
+          <span className={l.tone === "note" ? "note" : undefined}>{l.text}</span>
+        </li>
+      ))}
+    </ul>
   );
 }
