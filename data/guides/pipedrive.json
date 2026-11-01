@@ -16,7 +16,7 @@
     ],
     "customerAdminRequired": false,
     "cost": {
-      "summary": "No fee is stated for private apps or the developer sandbox.",
+      "summary": "Free. The developer sandbox and private apps cost nothing; we signed up with a personal Gmail address and no card. Only a public Marketplace listing involves a review.",
       "claimIds": [
         "no-fee-stated"
       ]

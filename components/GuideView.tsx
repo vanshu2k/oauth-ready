@@ -93,6 +93,11 @@ export default function GuideView({ guide: g, shareUrl }: { guide: Guide; shareU
             <span className={`pill ${g.verdict.tier}`}>{TIER[g.verdict.tier].label}</span>
             {g.verdict.customerAdminRequired && <span className="pill customer_admin">Each customer's admin must act</span>}
             {g.composioSetup.managedOAuthAvailable && <span className="pill neutral">Composio-managed app available</span>}
+            {mix.tested > 0 && (
+              <a href="#evidence" className="pill tested" title="Some claims come from a real setup attempt, not just docs">
+                Hands-on tested · {mix.tested} claims
+              </a>
+            )}
           </div>
           <p style={{ fontSize: 17, margin: "12px 0 8px" }}>{g.verdict.summary}</p>
           <p className="small muted" style={{ margin: 0 }}>
@@ -288,7 +293,7 @@ export default function GuideView({ guide: g, shareUrl }: { guide: Guide; shareU
       </div>
 
       {/* Evidence */}
-      <h2>Evidence</h2>
+      <h2 id="evidence">Evidence</h2>
       <div className="card">
         <div className="mixbar" aria-label="Evidence mix">
           {(Object.keys(mix) as (keyof typeof mix)[]).map((k) =>

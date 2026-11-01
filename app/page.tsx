@@ -66,7 +66,14 @@ export default async function Home() {
           return (
             <a key={g.app.slug} href={`/guides/${g.app.slug}`} className="card" style={{ color: "inherit", textDecoration: "none" }}>
               <div className="row" style={{ justifyContent: "space-between" }}>
-                <h3 style={{ fontSize: 17 }}>{g.app.name}</h3>
+                <h3 style={{ fontSize: 17 }}>
+                  {g.app.name}
+                  {mix.tested > 0 && (
+                    <span className="pill tested" style={{ marginLeft: 8, fontSize: 11 }}>
+                      Hands-on tested
+                    </span>
+                  )}
+                </h3>
                 <span className={`pill ${g.verdict.tier}`}>{TIER[g.verdict.tier].label}</span>
               </div>
               <p className="small muted" style={{ margin: "8px 0 12px" }}>
