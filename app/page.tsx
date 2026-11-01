@@ -35,7 +35,7 @@ export default async function Home() {
         </p>
         <SearchBox items={items} autoFocus />
         <p className="small faint" style={{ marginTop: 10 }}>
-          Five apps have hand-checked guides. Anything else is researched live by an agent in about two minutes and gets its own shareable page.
+          Five apps have hand-checked guides (Pipedrive is hands-on tested). Anything else is researched live by an agent in a few minutes and gets its own shareable page.
         </p>
       </section>
 

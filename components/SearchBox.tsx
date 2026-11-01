@@ -81,7 +81,7 @@ export default function SearchBox({ items, autoFocus }: { items: SearchItem[]; a
                 <span className="grow">
                   Research <strong>{q.trim()}</strong> with the agent
                 </span>
-                <span className="faint small">Live, about 2 min</span>
+                <span className="faint small">Live, a few minutes</span>
               </button>
             ),
           )}

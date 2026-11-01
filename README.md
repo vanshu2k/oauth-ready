@@ -2,9 +2,13 @@
 
 Look up an app and get a guide you can follow and share: how hard it is to get your OAuth app ready, how long it takes (hands-on work vs. waiting on someone), what can block approval, and which steps an agent can do for you.
 
-- **Library:** five hand-checked guides chosen to cover different kinds of setup: Pipedrive, Xero, Google Forms, Microsoft Word, ServiceNow.
-- **Live generation:** type any app name or website. An agent researches it in about two minutes, shows its work, and saves a guide with its own link.
-- **How we verify:** `/method` lists every correction, every conflict between sources, and every question still open.
+**Live: https://oauth-ready-ochre.vercel.app**
+
+- **Library:** five hand-checked guides chosen to cover different kinds of setup: [Pipedrive](https://oauth-ready-ochre.vercel.app/guides/pipedrive) (hands-on tested), [Xero](https://oauth-ready-ochre.vercel.app/guides/xero), [Google Forms](https://oauth-ready-ochre.vercel.app/guides/googleforms), [Microsoft Word](https://oauth-ready-ochre.vercel.app/guides/microsoft_word), [ServiceNow](https://oauth-ready-ochre.vercel.app/guides/servicenow).
+- **Live generation:** type any app name or website. An agent researches it in a few minutes, shows its work, and saves a guide with its own link. Two real runs:
+  - [Zoho Recruit](https://oauth-ready-ochre.vercel.app/g/zoho_recruit-mvwvyl9p): self-serve, but you must enable multi-data-centre support.
+  - [Teamtailor](https://oauth-ready-ochre.vercel.app/g/teamtailor-mvww8952): no third-party OAuth at all.
+- **How we verify:** [/method](https://oauth-ready-ochre.vercel.app/method) lists the verification run, every correction (ours and the agent's), every conflict between sources, and every question still open.
 
 ## The problem, as I understood it
 
@@ -111,12 +115,23 @@ python scripts/validate_guides.py
 | `lib/agent.ts` | Live research agent |
 | `lib/validate.ts`, `scripts/validate_guides.py` | Schema and evidence-rule validation (TypeScript at runtime, Python for the library) |
 | `components/GuideView.tsx` | Guide page |
-| `app/api/generate/route.ts` | Streams agent progress to the browser |
+| `app/api/generate/route.ts` | Streams agent progress to the browser; quote-checks and saves the finished guide |
+| `lib/quotecheck.ts`, `scripts/check_quotes.py` | Re-fetch cited pages and check quotes word for word (live guides automatically; library on demand) |
+| `data/verification.json`, `docs/04-verification-log.md` | The verification run and hands-on test results |
 
 ## Limitations
 
 - **Only Pipedrive is hands-on tested so far.** Sandbox, private app, Composio auth config, connection and a live API call, with 9 claims now "tested" and every estimate replaced by a measurement. The other four guides' claims are "official" or "inferred" until a real attempt is recorded (`docs/03-hands-on-checklist.md`).
-- **Policies change.** Every claim carries its retrieval date. There's no automatic re-check yet; the obvious next step is a scheduled job that re-fetches each claim's source and flags quotes that no longer appear.
+- **Policies change.** Every claim carries its retrieval date. `scripts/check_quotes.py` re-checks quotes on demand, but nothing runs on a schedule yet.
+- **The quote checker can't read pages a plain fetch can't.** Xero, Teamtailor and ServiceNow render client-side, and Zoho blocks bots. Those were checked in a real browser by hand; the automatic check marks them "Couldn't auto-check" rather than guessing.
 - **The agent only sees public pages.** Anything behind a provider login comes from docs, not observation.
-- **Live guides are labelled "not yet reviewed by a person".** Generation takes about 2 minutes and is rate-limited per visitor.
+- **Live guides are labelled "not yet reviewed by a person".** Generation takes a few minutes, uses the deployer's Anthropic credits, and is rate-limited per visitor.
 - **No credentials are stored or handled.** The agent never touches client secrets; those steps are always marked as human.
+
+## What I'd build next
+
+1. **Re-verification on a schedule.** Re-run the quote check weekly with a headless browser, and flag guides whose sources changed or disappeared (the Teamtailor article did, within a day of being cited).
+2. **Real approval times from real developers.** Provider SLAs ("6 weeks", "21 business days") are targets. A one-click "how long did yours take?" on each guide would turn the waiting clock into measured data.
+3. **Cover all 156 apps with a human in the loop.** Batch-generate guides, route each through a reviewer queue sorted by toolkit usage, and promote a guide to the library once someone has checked it or run it hands-on.
+4. **Hands-on tests first where they're cheap.** Self-serve providers (Pipedrive took 15 minutes) should be tested before anything is labelled "verified". Gated providers (ServiceNow, Workday) need partner or customer access and are where a person's time goes furthest.
+5. **Meet developers where they set up.** Link each guide from the toolkit's auth-config screen, and flag risky default scopes (like full Drive access for Google Forms) before the developer submits for review.
