@@ -52,14 +52,24 @@ This tool is built for those 156. Apps that Composio already manages or that reg
 
 ## Design
 
-The interface is styled after the Composio dashboard (dashboard.composio.dev). The idea is that a guide could sit next to the toolkit's auth-config screen without looking like a separate product.
+The interface follows Composio's own surfaces, so a guide could sit next to the toolkit's auth-config screen without looking like a separate product. Values were read from composio.dev, docs.composio.dev and the platform's public pages (the platform itself is behind a login).
 
-- **Layout:** an app shell with a left sidebar (Overview, Library, How it works, How we verify, Source) and a slim top bar with breadcrumbs. On phones the sidebar collapses behind a menu button.
-- **Visual language:** Radix slate grays, an indigo accent (`#5753c6`), square corners, black primary buttons, thin borders. Inter for text, JetBrains Mono for labels, claim ids and code.
-- **Dashboard patterns:** small uppercase mono section labels, a bordered stat strip for the catalog numbers on the overview page, flat badges for difficulty, evidence and who does each step.
-- **Dark mode** follows the system setting and uses the matching dark slate palette.
+- **Dark-first,** like docs.composio.dev and the platform: near-black surfaces (`#0a0a0a`), thin `#232323` borders, soft-blue links. A light mode follows the system setting and mirrors composio.dev's marketing pages (`#f6f6f6`, near-black text).
+- **Type:** Geist Sans for text, with headings at weight 400–500 and tight tracking, as on composio.dev. JetBrains Mono for buttons, labels and code. Buttons are mono uppercase and square-edged.
+- **One brand moment:** Composio's electric-blue highlight block (`#0007cd`) on the home and How it works headlines, and nowhere else.
+- **Product patterns, not decoration:**
+  - real app logos from Composio's logo CDN;
+  - a command-bar search with a `/` shortcut;
+  - a dashboard-style library table;
+  - quiet dot-and-word statuses instead of coloured pills;
+  - footnote-number references (`[3]`) instead of code chips in sentences;
+  - a sticky "at a glance" rail on guides;
+  - steps as a timeline;
+  - a terminal-style log for live agent runs;
+  - line icons (`components/Icon.tsx`), never emoji.
+- **Layout:** an app shell with a left sidebar and a slim breadcrumb top bar (`components/Shell.tsx`). On phones the sidebar collapses behind a menu button and the rail moves above the content.
 
-The dashboard itself sits behind a login, so the design values (palette, radius, button style, fonts) were taken from Composio's public sign-in page and marketing site, and the layout from the dashboard's sidebar-and-header structure. All styling lives in `app/globals.css` as CSS variables, and the shell is `components/Shell.tsx`. No UI library was added.
+All styling lives in `app/globals.css` as CSS variables. No UI library was added.
 
 ## How the live agent works (`lib/agent.ts`)
 
