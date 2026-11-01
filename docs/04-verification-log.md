@@ -68,6 +68,12 @@ A person followed the Pipedrive guide end to end with free accounts, timing each
 
 Result: the Pipedrive guide went from 8 official and 2 inferred claims to **9 tested and 3 official, with no estimates left**. The "20–45 min" estimate became a measured ~10 minutes.
 
+## Daily connection check (automated)
+
+The hands-on Pipedrive connection is now re-tested automatically every day. GitHub Actions runs `scripts/smoke_test.py`, which calls `PIPEDRIVE_GET_CURRENT_USER_DATA` through Composio on that connection and commits pass/fail and latency to `data/smoke-status.json`. The guide shows the result as a badge.
+- **First run, 2026-11-01 22:58 UTC: passed in 2.4 s.**
+- One human-created test account per provider is enough. No sandbox per test.
+
 ## Not verified yet
 
 - **Hands-on attempts for the other four library apps.** Google Forms and Xero are free to try (`docs/03-hands-on-checklist.md`). Microsoft needs a work tenant, and ServiceNow needs a developer instance.
