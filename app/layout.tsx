@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import "./globals.css";
+import Shell from "@/components/Shell";
 
 const SITE = process.env.VERCEL_PROJECT_PRODUCTION_URL ? `https://${process.env.VERCEL_PROJECT_PRODUCTION_URL}` : "http://localhost:3000";
 
@@ -15,38 +16,16 @@ const REPO_URL = process.env.NEXT_PUBLIC_REPO_URL;
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
     <html lang="en">
+      <head>
+        <link rel="preconnect" href="https://fonts.googleapis.com" />
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="" />
+        <link
+          rel="stylesheet"
+          href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap"
+        />
+      </head>
       <body>
-        <nav className="nav">
-          <div className="wrap">
-            <a href="/" className="brand">
-              OAuth <span>Ready</span>
-            </a>
-            <a className="link" href="/#library">
-              Library
-            </a>
-            <a className="link" href="/how-it-works">
-              How it works
-            </a>
-            <a className="link" href="/method">
-              How we verify
-            </a>
-            <span className="spacer" />
-            {REPO_URL && (
-              <a className="link" href={REPO_URL} target="_blank" rel="noreferrer">
-                Source ↗
-              </a>
-            )}
-          </div>
-        </nav>
-        <main>
-          <div className="wrap">{children}</div>
-        </main>
-        <footer>
-          <div className="wrap">
-            Guides describe provider policies as of the dates shown on each claim. Policies change, so check the linked sources before you rely on a
-            number. Not affiliated with Composio or any provider.
-          </div>
-        </footer>
+        <Shell repoUrl={REPO_URL}>{children}</Shell>
       </body>
     </html>
   );
