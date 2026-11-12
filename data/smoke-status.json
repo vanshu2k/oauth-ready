@@ -1,12 +1,12 @@
 {
-  "runAt": "2026-11-11T11:20:04+00:00",
+  "runAt": "2026-11-12T11:38:29+00:00",
   "results": [
     {
       "guide": "pipedrive",
       "toolkit": "pipedrive",
       "tool": "PIPEDRIVE_GET_CURRENT_USER_DATA",
       "status": "pass",
-      "latencyMs": 3628
+      "latencyMs": 1197
     }
   ]
 }
